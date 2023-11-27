@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.google.gson.JsonSyntaxException;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
@@ -234,6 +235,11 @@ public class MusapClient {
      */
     public static void disableLink() {
         // TODO
+    }
+
+    public static void coupleWithLink(String url, String couplingCode) throws IOException {
+        MusapLink link = new MusapLink(url, null);
+        link.couple(couplingCode);
     }
 
     /**
