@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import fi.methics.musap.sdk.internal.async.BindKeyTask;
 import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
+import fi.methics.musap.sdk.internal.async.CoupleTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.discovery.MusapImportData;
@@ -237,9 +238,10 @@ public class MusapClient {
         // TODO
     }
 
-    public static void coupleWithLink(String url, String couplingCode) throws IOException {
+    public static void coupleWithLink(String url, String couplingCode, MusapCallback<Boolean> callback) throws IOException {
         MusapLink link = new MusapLink(url, null);
-        link.couple(couplingCode);
+        link.setCouplingCode(couplingCode);
+        new CoupleTask(link, callback, context.get()).executeOnExecutor(executor);
     }
 
     /**

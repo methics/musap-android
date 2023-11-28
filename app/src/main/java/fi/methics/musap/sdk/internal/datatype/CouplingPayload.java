@@ -7,6 +7,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.nio.charset.StandardCharsets;
 
+import fi.methics.musap.sdk.internal.util.MLog;
+
 public class CouplingPayload {
 
     @SerializedName("couplingcode")
@@ -25,8 +27,12 @@ public class CouplingPayload {
      */
     public String toBase64() {
         String payloadJson = new Gson().toJson(this);
-        return Base64.encodeToString(
+        MLog.d("Payload=" + payloadJson);
+        String base64 =  Base64.encodeToString(
                 payloadJson.getBytes(StandardCharsets.UTF_8),
-                Base64.NO_WRAP | Base64.URL_SAFE);
+                Base64.NO_WRAP);
+        MLog.d("Base64=" + base64);
+        return base64;
+
     }
 }
