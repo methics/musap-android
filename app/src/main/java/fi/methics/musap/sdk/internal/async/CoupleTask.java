@@ -18,20 +18,24 @@ import fi.methics.musap.sdk.internal.util.MusapAsyncTask;
 public class CoupleTask extends MusapAsyncTask<Boolean> {
 
     private final MusapLink link;
+    private final String couplingCode;
+    private final String appId;
 
-    public CoupleTask(MusapLink link, MusapCallback<Boolean> callback, Context context) {
+    public CoupleTask(MusapLink link, String couplingCode, String appId, MusapCallback<Boolean> callback, Context context) {
         super(callback, context);
         this.link = link;
+        this.couplingCode = couplingCode;
+        this.appId = appId;
     }
 
     @Override
     protected AsyncTaskResult<Boolean> runOperation() throws MusapException {
         try {
-            boolean success = link.couple();
+            boolean success = link.couple(this.couplingCode, this.appId);
             return new AsyncTaskResult<>(success);
         } catch (Exception e) {
             MLog.e("Failed", e);
-            return new AsyncTaskResult<>(false);
+            throw new MusapException(e);
         }
     }
 }

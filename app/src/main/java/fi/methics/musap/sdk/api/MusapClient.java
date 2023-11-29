@@ -4,10 +4,10 @@ import android.content.Context;
 
 import com.google.gson.JsonSyntaxException;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import fi.methics.musap.sdk.internal.async.BindKeyTask;
+import fi.methics.musap.sdk.internal.async.EnrollDataTask;
 import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
 import fi.methics.musap.sdk.internal.async.CoupleTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
@@ -34,6 +35,7 @@ import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.keygeneration.UpdateKeyReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musap.sdk.internal.util.MusapStorage;
 
 public class MusapClient {
 
@@ -238,10 +240,16 @@ public class MusapClient {
         // TODO
     }
 
-    public static void coupleWithLink(String url, String couplingCode, MusapCallback<Boolean> callback) throws IOException {
+    public static void enrolLDataWithLink(String url, MusapCallback<Void> callback) {
+        String fcmToken = UUID.randomUUID().toString();
         MusapLink link = new MusapLink(url, null);
-        link.setCouplingCode(couplingCode);
-        new CoupleTask(link, callback, context.get()).executeOnExecutor(executor);
+        new EnrollDataTask(link, fcmToken, callback, context.get()).executeOnExecutor(executor);
+    }
+
+    public static void coupleWithLink(String url, String couplingCode, MusapCallback<Boolean> callback) {
+        String appId = getMusapId();
+        MusapLink link = new MusapLink(url, appId);
+        new CoupleTask(link, couplingCode, appId, callback, context.get()).executeOnExecutor(executor);
     }
 
     /**
@@ -270,6 +278,10 @@ public class MusapClient {
      */
     public static void setDebugLog(boolean isDebug) {
         MLog.setDebugEnabled(false);
+    }
+
+    public static String getMusapId() {
+        return new MusapStorage(context.get()).getMusapId();
     }
 
 }
