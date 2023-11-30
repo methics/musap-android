@@ -19,6 +19,7 @@ import fi.methics.musap.sdk.internal.async.BindKeyTask;
 import fi.methics.musap.sdk.internal.async.EnrollDataTask;
 import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
 import fi.methics.musap.sdk.internal.async.CoupleTask;
+import fi.methics.musap.sdk.internal.async.PollTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 import fi.methics.musap.sdk.internal.datatype.SignaturePayload;
@@ -273,18 +274,12 @@ public class MusapClient {
     /**
      * Poll MUSAP Link for an incoming signature request. This should be called periodically and/or
      * when a notification wakes up the application.
-     * @return SignaturePayload or null if no request available
-     * @throws MusapException if polling failed (e.g. a network issue)
+     * Calls the callback when when signature is received, or polling failed.
      */
-    public static SignaturePayload pollLink() throws MusapException {
-        MusapLink link = getMusapLink();
-        if (link == null) return null;
-        try {
-            SignaturePayload payload = link.poll();
-            return payload;
-        } catch (Exception e) {
-            throw new MusapException(e);
-        }
+    public static void pollLink(String url, MusapCallback<SignaturePayload> callback) {
+        String appId = getMusapId();
+        MusapLink link = new MusapLink(url, appId);
+        new PollTask(link, callback, context.get()).executeOnExecutor(executor);
     }
 
     /**
