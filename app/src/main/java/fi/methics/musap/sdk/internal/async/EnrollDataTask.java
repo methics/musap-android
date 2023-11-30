@@ -10,12 +10,12 @@ import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapAsyncTask;
 import fi.methics.musap.sdk.internal.util.MusapStorage;
 
-public class EnrollDataTask extends MusapAsyncTask<Void>  {
+public class EnrollDataTask extends MusapAsyncTask<MusapLink>  {
 
     private final MusapLink link;
     private final String fcmToken;
 
-    public EnrollDataTask(MusapLink link, String fcmToken, MusapCallback<Void> callback, Context context) {
+    public EnrollDataTask(MusapLink link, String fcmToken, MusapCallback<MusapLink> callback, Context context) {
         super(callback, context);
         this.link = link;
         this.fcmToken = fcmToken;
@@ -23,11 +23,10 @@ public class EnrollDataTask extends MusapAsyncTask<Void>  {
 
     @Override
 
-    protected AsyncTaskResult<Void> runOperation() throws MusapException {
+    protected AsyncTaskResult<MusapLink> runOperation() throws MusapException {
         try {
-           String musapId = this.link.enroll(this.fcmToken);
-           new MusapStorage(this.context.get()).storeMusapId(musapId);
-           return new AsyncTaskResult<>(null);
+           new MusapStorage(this.context.get()).storeLink(this.link);
+           return new AsyncTaskResult<>(this.link);
         } catch (Exception e) {
             MLog.e("Failed", e);
             throw new MusapException(e);

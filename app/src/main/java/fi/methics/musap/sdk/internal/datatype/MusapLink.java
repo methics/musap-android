@@ -33,6 +33,22 @@ public class MusapLink {
         this.id  = id;
     }
 
+    /**
+     * Set MUSAP ID
+     * @param id MUSAP ID
+     */
+    public void setMusapId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Get MUSAP ID
+     * @return MUSAP ID
+     */
+    public String getMusapId() {
+        return this.id;
+    }
+
     public void setAesKey(String aesKey) {
         this.aesKey = aesKey;
     }
@@ -52,10 +68,10 @@ public class MusapLink {
     /**
      * Enroll this Musap instance with a MUSAP link.
      * @param fcmToken
-     * @return ID for this instance. Null if enroll failed.
+     * @return MusapLink with updated data.
      * @throws IOException
      */
-    public String enroll(String fcmToken) throws IOException {
+    public MusapLink enroll(String fcmToken) throws IOException {
         EnrollDataPayload payload = new EnrollDataPayload(fcmToken);
 
         MusapMessage msg = new MusapMessage();
@@ -81,10 +97,11 @@ public class MusapLink {
                 MLog.d("Decoded=" + payloadJson);
                 EnrollDataResponsePayload respPayload = GSON.fromJson(payloadJson, EnrollDataResponsePayload.class);
 
-                return respPayload.getMusapId();
+                this.id = respPayload.getMusapId();
+                return this;
             } else {
                 MLog.d("Null response");
-                return null;
+                throw new IOException("EnrollData failed. Got empty response.");
             }
         }
     }

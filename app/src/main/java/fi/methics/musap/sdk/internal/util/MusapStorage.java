@@ -10,6 +10,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import fi.methics.musap.sdk.internal.datatype.MusapLink;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 
 /**
@@ -50,13 +51,31 @@ public class MusapStorage {
         return GSON.fromJson(getPrefValue(RP_PREF), listType);
     }
 
-    public void storeMusapId(String musapId) {
-        MLog.d("Stored MUSAP ID " + musapId);
-        this.storePrefValue(MUSAP_ID_PREF, musapId);
+    /**
+     * Store the MUSAP Link
+     * @param link MUSAP Link
+     */
+    public void storeLink(MusapLink link) {
+        this.storePrefValue(MUSAP_ID_PREF, GSON.toJson(link));
+        MLog.d("Stored MUSAP Link with MUSAP ID " + link.getMusapId());
     }
 
+    /**
+     * Get the stored MUSAP Link
+     * @return MUSAP Link or null if not stored
+     */
+    public MusapLink getMusapLink() {
+        return GSON.fromJson(this.getPrefValue(MUSAP_ID_PREF), MusapLink.class);
+    }
+
+    /**
+     * Get the MUSAP ID if stored
+     * @return MUSAP ID
+     */
     public String getMusapId() {
-        return this.getPrefValue(MUSAP_ID_PREF);
+        MusapLink link = getMusapLink();
+        if (link == null) return null;
+        return link.getMusapId();
     }
 
     private void storePrefValue(String prefName, String prefValue) {

@@ -229,8 +229,8 @@ public class MusapClient {
      * Enabling allows the MUSAP Link to securely request signatures from this MUSAP.
      * @param url URL of the MUSAP link service
      */
-    public static MusapLink enableLink(String url) {
-        return enrolLDataWithLink(url, null);
+    public static void enableLink(String url) {
+        enrolLDataWithLink(url, null);
     }
 
     /**
@@ -248,11 +248,10 @@ public class MusapClient {
         return new MusapStorage(context.get()).listRelyingParties();
     }
 
-    public static MusapLink enrolLDataWithLink(String url, MusapCallback<Void> callback) {
+    public static void enrolLDataWithLink(String url, MusapCallback<MusapLink> callback) {
         String fcmToken = UUID.randomUUID().toString();
         MusapLink link = new MusapLink(url, null);
         new EnrollDataTask(link, fcmToken, callback, context.get()).executeOnExecutor(executor);
-        return link;
     }
 
     public static void coupleWithLink(String url, String couplingCode, MusapCallback<RelyingParty> callback) {
@@ -295,6 +294,14 @@ public class MusapClient {
      */
     public static String getMusapId() {
         return new MusapStorage(context.get()).getMusapId();
+    }
+
+    /**
+     * Get the MUSAP Link properties
+     * @return MUSAP Link or null if not enabled yet
+     */
+    public static MusapLink getMusapLink() {
+        return  new MusapStorage(context.get()).getMusapLink();
     }
 
 }
