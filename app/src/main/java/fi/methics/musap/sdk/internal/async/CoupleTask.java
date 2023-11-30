@@ -7,21 +7,23 @@ import java.io.IOException;
 import fi.methics.musap.sdk.api.MusapCallback;
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
+import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 import fi.methics.musap.sdk.internal.util.AsyncTaskResult;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapAsyncTask;
+import fi.methics.musap.sdk.internal.util.MusapStorage;
 
 /**
  * Runs Musap Link coupling operation async to prevent
  * network operations on the main thread.
  */
-public class CoupleTask extends MusapAsyncTask<Boolean> {
+public class CoupleTask extends MusapAsyncTask<RelyingParty> {
 
     private final MusapLink link;
     private final String couplingCode;
     private final String appId;
 
-    public CoupleTask(MusapLink link, String couplingCode, String appId, MusapCallback<Boolean> callback, Context context) {
+    public CoupleTask(MusapLink link, String couplingCode, String appId, MusapCallback<RelyingParty> callback, Context context) {
         super(callback, context);
         this.link = link;
         this.couplingCode = couplingCode;
@@ -29,10 +31,11 @@ public class CoupleTask extends MusapAsyncTask<Boolean> {
     }
 
     @Override
-    protected AsyncTaskResult<Boolean> runOperation() throws MusapException {
+    protected AsyncTaskResult<RelyingParty> runOperation() throws MusapException {
         try {
-            boolean success = link.couple(this.couplingCode, this.appId);
-            return new AsyncTaskResult<>(success);
+            RelyingParty rp = link.couple(this.couplingCode, this.appId);
+            new MusapStorage(this.context.get()).storeRelyingParty(rp);
+            return new AsyncTaskResult<>(rp);
         } catch (Exception e) {
             MLog.e("Failed", e);
             throw new MusapException(e);

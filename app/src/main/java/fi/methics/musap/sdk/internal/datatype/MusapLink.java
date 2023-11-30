@@ -95,7 +95,7 @@ public class MusapLink {
      * @return True if pairing was a success.
      * @throws IOException
      */
-    public boolean couple(String couplingCode, String uuid) throws IOException {
+    public RelyingParty couple(String couplingCode, String uuid) throws IOException {
         CouplingPayload payload = new CouplingPayload(couplingCode, uuid);
 
         MusapMessage msg = new MusapMessage();
@@ -122,10 +122,14 @@ public class MusapLink {
 
                 CouplingResponsePayload resp = GSON.fromJson(payloadJson, CouplingResponsePayload.class);
                 MLog.d("Parsed payload");
-                return resp.isSuccess();
+                if (resp.isSuccess()) {
+                    return new RelyingParty(resp);
+                } else {
+                    return null;
+                }
             } else {
                 MLog.d("Null response");
-                return false;
+                return null;
             }
         }
     }

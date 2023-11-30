@@ -12,13 +12,13 @@ import fi.methics.musap.sdk.internal.util.MLog;
 public class CouplingPayload {
 
     @SerializedName("couplingcode")
-    private final String couplingCode;
+    public final String couplingCode;
     @SerializedName("musapid")
-    private final String musapId;
+    public final String musapId;
 
     public CouplingPayload(String couplingCode, String musapId) {
         this.couplingCode = couplingCode;
-        this.musapId = musapId;
+        this.musapId      = musapId;
     }
 
     /**

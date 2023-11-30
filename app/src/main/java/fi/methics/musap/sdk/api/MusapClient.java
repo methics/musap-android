@@ -19,6 +19,7 @@ import fi.methics.musap.sdk.internal.async.EnrollDataTask;
 import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
 import fi.methics.musap.sdk.internal.async.CoupleTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
+import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.discovery.MusapImportData;
 import fi.methics.musap.sdk.internal.discovery.SscdSearchReq;
@@ -229,8 +230,7 @@ public class MusapClient {
      * @param url URL of the MUSAP link service
      */
     public static MusapLink enableLink(String url) {
-        // TODO
-        return new MusapLink(url, null);
+        return enrolLDataWithLink(url, null);
     }
 
     /**
@@ -240,13 +240,22 @@ public class MusapClient {
         // TODO
     }
 
-    public static void enrolLDataWithLink(String url, MusapCallback<Void> callback) {
+    /**
+     * List enrolled Relying Parties
+     * @return Relying Parties
+     */
+    public static List<RelyingParty> listRelyingParties() {
+        return new MusapStorage(context.get()).listRelyingParties();
+    }
+
+    public static MusapLink enrolLDataWithLink(String url, MusapCallback<Void> callback) {
         String fcmToken = UUID.randomUUID().toString();
         MusapLink link = new MusapLink(url, null);
         new EnrollDataTask(link, fcmToken, callback, context.get()).executeOnExecutor(executor);
+        return link;
     }
 
-    public static void coupleWithLink(String url, String couplingCode, MusapCallback<Boolean> callback) {
+    public static void coupleWithLink(String url, String couplingCode, MusapCallback<RelyingParty> callback) {
         String appId = getMusapId();
         MusapLink link = new MusapLink(url, appId);
         new CoupleTask(link, couplingCode, appId, callback, context.get()).executeOnExecutor(executor);
@@ -257,7 +266,7 @@ public class MusapClient {
      * @return true if enabled
      */
     public static boolean isLinkEnabled() {
-        return false; // TODO
+        return getMusapId() != null;
     }
 
     /**
@@ -280,6 +289,10 @@ public class MusapClient {
         MLog.setDebugEnabled(false);
     }
 
+    /**
+     * Get MUSAP ID given by a MUSAP Link service.
+     * @return MUSAP ID. Null if MUSAP Link has not been enrolled.
+     */
     public static String getMusapId() {
         return new MusapStorage(context.get()).getMusapId();
     }
