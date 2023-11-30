@@ -30,4 +30,15 @@ public class SignatureFormat {
     public int hashCode() {
         return format != null ? format.hashCode() : 0;
     }
+
+    public static SignatureFormat fromString(String format) {
+        if (format == null) return null;
+        switch (format.toUpperCase()) {
+            case "CMS": return CMS;
+            case "RAW": return RAW;
+            case "PKCS1": return RAW;
+        }
+        return null;
+    }
+
 }

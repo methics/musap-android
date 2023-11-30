@@ -3,9 +3,12 @@ package fi.methics.musap.sdk.internal.datatype;
 import android.util.Base64;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 
+import fi.methics.musap.sdk.internal.util.ByteaMarshaller;
+import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.MLog;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -19,8 +22,9 @@ public class MusapLink {
 
     private static final String COUPLE_MSG_TYPE = "linkaccount";
     private static final String ENROLL_MSG_TYPE = "enrolldata";
+    private static final String POLL_MSG_TYPE   = "getdata";
 
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
     private String url;
     private String id;
@@ -109,7 +113,7 @@ public class MusapLink {
     /**
      * Couple this MUSAP with a MUSAP Link.
      * This performs networking operations.
-     * @return True if pairing was a success.
+     * @return RelyingParty if pairing was a success.
      * @throws IOException
      */
     public RelyingParty couple(String couplingCode, String uuid) throws IOException {
@@ -150,4 +154,44 @@ public class MusapLink {
             }
         }
     }
+
+
+    /**
+     * Poll for a signature request
+     * This performs networking operations.
+     * @return SignaturePayload if poll returned data. Otherwise null.
+     * @throws IOException
+     */
+    public SignaturePayload poll() throws IOException {
+        MusapMessage msg = new MusapMessage();
+        msg.type = POLL_MSG_TYPE;
+        MLog.d("Message=" + msg.toJson());
+        MLog.d("Url=" + this.url);
+
+        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
+        Request request = new Request.Builder()
+                .url(this.url)
+                .post(body)
+                .build();
+        OkHttpClient client = new OkHttpClient.Builder().build();
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() != null) {
+                String sResp = response.body().string();
+                MLog.d("Got response " + sResp);
+
+                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+                MLog.d("Response payload=" + respMsg.payload);
+                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+                MLog.d("Decoded=" + payloadJson);
+
+                SignaturePayload resp = GSON.fromJson(payloadJson, SignaturePayload.class);
+                MLog.d("Parsed payload");
+                return resp;
+            } else {
+                MLog.d("Null response");
+                return null;
+            }
+        }
+    }
+
 }

@@ -1,5 +1,6 @@
 package fi.methics.musap.sdk.api;
 
+import android.app.Activity;
 import android.content.Context;
 
 import com.google.gson.JsonSyntaxException;
@@ -20,6 +21,7 @@ import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
 import fi.methics.musap.sdk.internal.async.CoupleTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
+import fi.methics.musap.sdk.internal.datatype.SignaturePayload;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.discovery.MusapImportData;
 import fi.methics.musap.sdk.internal.discovery.SscdSearchReq;
@@ -271,11 +273,18 @@ public class MusapClient {
     /**
      * Poll MUSAP Link for an incoming signature request. This should be called periodically and/or
      * when a notification wakes up the application.
-     * @return SignatureReq or null if no request available
+     * @return SignaturePayload or null if no request available
      * @throws MusapException if polling failed (e.g. a network issue)
      */
-    public static SignatureReq pollLink() {
-        return null;
+    public static SignaturePayload pollLink() throws MusapException {
+        MusapLink link = getMusapLink();
+        if (link == null) return null;
+        try {
+            SignaturePayload payload = link.poll();
+            return payload;
+        } catch (Exception e) {
+            throw new MusapException(e);
+        }
     }
 
     /**
