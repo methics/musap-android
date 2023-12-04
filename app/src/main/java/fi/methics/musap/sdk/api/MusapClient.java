@@ -289,7 +289,7 @@ public class MusapClient {
      * @param isDebug
      */
     public static void setDebugLog(boolean isDebug) {
-        MLog.setDebugEnabled(false);
+        MLog.setDebugEnabled(isDebug);
     }
 
     /**

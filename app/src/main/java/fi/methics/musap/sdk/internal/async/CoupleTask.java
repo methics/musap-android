@@ -34,6 +34,7 @@ public class CoupleTask extends MusapAsyncTask<RelyingParty> {
     protected AsyncTaskResult<RelyingParty> runOperation() throws MusapException {
         try {
             RelyingParty rp = link.couple(this.couplingCode, this.appId);
+
             new MusapStorage(this.context.get()).storeRelyingParty(rp);
             return new AsyncTaskResult<>(rp);
         } catch (Exception e) {

@@ -8,7 +8,6 @@ import com.google.gson.GsonBuilder;
 import java.io.IOException;
 
 import fi.methics.musap.sdk.internal.util.ByteaMarshaller;
-import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.MLog;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -137,6 +136,12 @@ public class MusapLink {
                 MLog.d("Got response " + sResp);
 
                 MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+
+                if (respMsg.payload == null) {
+                    MLog.d("Null payload");
+                    return null;
+                }
+
                 MLog.d("Response payload=" + respMsg.payload);
                 String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
                 MLog.d("Decoded=" + payloadJson);
@@ -178,8 +183,13 @@ public class MusapLink {
             if (response.body() != null) {
                 String sResp = response.body().string();
                 MLog.d("Got response " + sResp);
-
                 MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+
+                if (respMsg == null || respMsg.payload == null) {
+                    MLog.d("Null payload");
+                    return null;
+                }
+
                 MLog.d("Response payload=" + respMsg.payload);
                 String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
                 MLog.d("Decoded=" + payloadJson);
