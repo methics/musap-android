@@ -24,6 +24,7 @@ import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
 import fi.methics.musap.sdk.internal.async.CoupleTask;
 import fi.methics.musap.sdk.internal.async.PollTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
+import fi.methics.musap.sdk.internal.async.SignatureCallbackTask;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 import fi.methics.musap.sdk.internal.datatype.SignaturePayload;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
@@ -269,6 +270,13 @@ public class MusapClient {
         String appId = getMusapId();
         MusapLink link = new MusapLink(url, appId);
         new CoupleTask(link, couplingCode, appId, callback, context.get()).executeOnExecutor(executor);
+    }
+
+    public static void sendSignatureCallback(MusapSignature signature) {
+        MusapLink link = getMusapLink();
+        if (link != null) {
+            new SignatureCallbackTask(link, signature, null, context.get());
+        }
     }
 
     /**
