@@ -11,10 +11,12 @@ public class MusapMessage {
     @SerializedName("type")
     public String type;
 
+    @SerializedName("musapid")
+    public String musapId;
+
     @SerializedName("payload")
     public String payload;
 
-    public String uuid;
     public String transid;
     public String requestid;
     public String mac;

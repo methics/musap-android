@@ -460,6 +460,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         keyBuilder.setSscdId(this.getSscdInfo().getSscdId());
         keyBuilder.setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3));
         keyBuilder.setKeyId(IdGenerator.generateKeyId());
+        keyBuilder.setAlgorithm(req.getAlgorithm());
 
         this.keygenFuture.complete(new KeyGenerationResult(keyBuilder.build()));
 

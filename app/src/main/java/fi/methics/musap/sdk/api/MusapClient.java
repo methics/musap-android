@@ -5,7 +5,10 @@ import android.content.Context;
 
 import com.google.gson.JsonSyntaxException;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import java.lang.ref.WeakReference;
+import java.security.Security;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -49,6 +52,11 @@ public class MusapClient {
     private static Executor executor;
 
     public static void init(Context c) {
+        Security.removeProvider("BC");
+        MLog.d("Remove provider");
+        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        MLog.d("Insert provider");
+
         context      = new WeakReference<>(c);
         keyDiscovery = new KeyDiscoveryAPI(c);
         storage      = new MetadataStorage(c);
@@ -277,9 +285,7 @@ public class MusapClient {
      * Calls the callback when when signature is received, or polling failed.
      */
     public static void pollLink(String url, MusapCallback<SignaturePayload> callback) {
-        String appId = getMusapId();
-        MusapLink link = new MusapLink(url, appId);
-        new PollTask(link, callback, context.get()).executeOnExecutor(executor);
+        new PollTask(getMusapLink(), callback, context.get()).executeOnExecutor(executor);
     }
 
     /**

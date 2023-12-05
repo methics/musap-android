@@ -170,6 +170,7 @@ public class MusapLink {
     public SignaturePayload poll() throws IOException {
         MusapMessage msg = new MusapMessage();
         msg.type = POLL_MSG_TYPE;
+        msg.musapId = this.id;
         MLog.d("Message=" + msg.toJson());
         MLog.d("Url=" + this.url);
 
