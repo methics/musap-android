@@ -275,7 +275,7 @@ public class MusapClient {
     public static void sendSignatureCallback(MusapSignature signature) {
         MusapLink link = getMusapLink();
         if (link != null) {
-            new SignatureCallbackTask(link, signature, null, context.get());
+            new SignatureCallbackTask(link, signature, null, context.get()).executeOnExecutor(executor);
         }
     }
 
