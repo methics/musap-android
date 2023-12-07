@@ -168,7 +168,7 @@ public class MusapLink {
      * @return SignaturePayload if poll returned data. Otherwise null.
      * @throws IOException
      */
-    public SignaturePayload poll() throws IOException {
+    public PollResp poll() throws IOException {
         MusapMessage msg = new MusapMessage();
         msg.type = POLL_MSG_TYPE;
         msg.musapId = this.id;
@@ -192,13 +192,15 @@ public class MusapLink {
                     return null;
                 }
 
+                String transId = respMsg.transid;
                 MLog.d("Response payload=" + respMsg.payload);
                 String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
                 MLog.d("Decoded=" + payloadJson);
 
-                SignaturePayload resp = GSON.fromJson(payloadJson, SignaturePayload.class);
+                SignaturePayload payload = GSON.fromJson(payloadJson, SignaturePayload.class);
                 MLog.d("Parsed payload");
-                return resp;
+
+                return new PollResp(payload, transId);
             } else {
                 MLog.d("Null response");
                 return null;
@@ -210,16 +212,20 @@ public class MusapLink {
     /**
      * Send a signature callback to MUSAP Link.
      * This performs networking operations.
+     *
      * @param signature MusapSignature
+     * @param transId
      * @throws IOException
      */
-    public void sendSignatureCallback(MusapSignature signature) throws IOException {
+    public void sendSignatureCallback(MusapSignature signature, String transId) throws IOException {
 
         SignatureCallbackPayload payload = new SignatureCallbackPayload(null, signature);
 
         MusapMessage msg = new MusapMessage();
         msg.type = SIG_CALLBACK_MSG_TYPE;
         msg.payload = payload.toBase64();
+        msg.musapId = this.id;
+        msg.transid = transId;
         MLog.d("Message=" + msg.toJson());
         MLog.d("Url=" + this.url);
 

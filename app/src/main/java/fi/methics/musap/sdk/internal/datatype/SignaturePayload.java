@@ -56,7 +56,7 @@ public class SignaturePayload {
      * @param key MUSAP Key chosen by the system or by the user
      * @return {@link SignatureReq}
      */
-    public SignatureReq toSignatureReq(MusapKey key) {
+    protected SignatureReq toSignatureReq(MusapKey key) {
 
         SignatureFormat format = SignatureFormat.fromString(this.format);
         KeyAlgorithm   keyAlgo = key.getAlgorithm();

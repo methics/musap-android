@@ -41,6 +41,10 @@ public class SignatureReq {
     @SerializedName("attributes")
     protected List<SignatureAttribute> attributes;
 
+
+
+    protected String transId;
+
     protected transient Activity activity;
 
     private SignatureReq(Builder builder) {
@@ -60,12 +64,20 @@ public class SignatureReq {
         this.attributes = attributes;
     }
 
+    public void setTransId(String transId) {
+        this.transId = transId;
+    }
+
     /**
      * Get the public key reference of the key to use
      * @return key reference
      */
     public MusapKey getKey() {
         return key;
+    }
+
+    public String getTransId() {
+        return transId;
     }
 
     /**

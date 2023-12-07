@@ -1,6 +1,5 @@
 package fi.methics.musap.sdk.api;
 
-import android.app.Activity;
 import android.content.Context;
 
 import com.google.gson.JsonSyntaxException;
@@ -12,7 +11,7 @@ import java.security.Security;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,8 +24,8 @@ import fi.methics.musap.sdk.internal.async.CoupleTask;
 import fi.methics.musap.sdk.internal.async.PollTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
 import fi.methics.musap.sdk.internal.async.SignatureCallbackTask;
+import fi.methics.musap.sdk.internal.datatype.PollResp;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
-import fi.methics.musap.sdk.internal.datatype.SignaturePayload;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.discovery.MusapImportData;
 import fi.methics.musap.sdk.internal.discovery.SscdSearchReq;
@@ -50,7 +49,12 @@ public class MusapClient {
     private static WeakReference<Context> context;
     private static KeyDiscoveryAPI keyDiscovery;
     private static MetadataStorage storage;
-    private static Executor executor;
+    private static ExecutorService executor;
+
+    /**
+     * Limit UI related tasks to 1 to avoid concurrency problems.
+     */
+//    private static Semaphore uiSemaphore = new Semaphore(1);
 
     public static void init(Context c) {
         Security.removeProvider("BC");
@@ -61,7 +65,7 @@ public class MusapClient {
         context      = new WeakReference<>(c);
         keyDiscovery = new KeyDiscoveryAPI(c);
         storage      = new MetadataStorage(c);
-        executor     = new ThreadPoolExecutor(2, 5, 5000, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(5));
+        executor     = new ThreadPoolExecutor(2, 20, 5000, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(5));
     }
 
     /**
@@ -85,12 +89,21 @@ public class MusapClient {
     }
 
     /**
-     * Sign data with given SSCD
+     * Sign data with given SSCD.
+     * Note! MUSAP allows only one active signing operation at a time. If you try to start another
+     * signature while one is in progress, MUSAP ignores the second signature.
+     *
      * @param req  Request containing the data to sign
      * @param callback Callback that will deliver success or failure
      */
     public static void sign(SignatureReq req, MusapCallback<MusapSignature> callback) {
-        new SignTask(callback, context.get(), req).executeOnExecutor(executor);
+
+        // TODO: Some way to limit concurrent operations.
+//        if (!uiSemaphore.tryAcquire()) {
+//            MLog.d("UI operation is in progress, not starting a new one");
+//            return;
+//        }
+        new SignTask(callback, context.get(), null, req).executeOnExecutor(executor);
     }
 
 
@@ -276,15 +289,17 @@ public class MusapClient {
     }
 
     public static void coupleWithLink(String url, String couplingCode, MusapCallback<RelyingParty> callback) {
-        String appId = getMusapId();
-        MusapLink link = new MusapLink(url, appId);
-        new CoupleTask(link, couplingCode, appId, callback, context.get()).executeOnExecutor(executor);
+        String musapId = getMusapId();
+        MusapLink link = new MusapLink(url, musapId);
+        new CoupleTask(link, couplingCode, musapId, callback, context.get()).executeOnExecutor(executor);
     }
 
-    public static void sendSignatureCallback(MusapSignature signature) {
+    public static void sendSignatureCallback(MusapSignature signature, String txnId) {
         MusapLink link = getMusapLink();
         if (link != null) {
-            new SignatureCallbackTask(link, signature, null, context.get()).executeOnExecutor(executor);
+            String musapId = getMusapId();
+            link.setMusapId(musapId);
+            new SignatureCallbackTask(link, signature, txnId,null, context.get()).executeOnExecutor(executor);
         }
     }
 
@@ -301,7 +316,7 @@ public class MusapClient {
      * when a notification wakes up the application.
      * Calls the callback when when signature is received, or polling failed.
      */
-    public static void pollLink(String url, MusapCallback<SignaturePayload> callback) {
+    public static void pollLink(String url, MusapCallback<PollResp> callback) {
         new PollTask(getMusapLink(), callback, context.get()).executeOnExecutor(executor);
     }
 
