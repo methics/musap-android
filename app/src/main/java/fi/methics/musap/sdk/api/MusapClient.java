@@ -260,6 +260,15 @@ public class MusapClient {
         return new MusapStorage(context.get()).listRelyingParties();
     }
 
+    /**
+     * Remove a previously linked Relying Party from this MUSAP app.
+     * @param rp
+     * @return True if removal was successful.
+     */
+    public static boolean removeRelyingParty(RelyingParty rp) {
+        return new MusapStorage(context.get()).removeRelyingParty(rp);
+    }
+
     public static void enrolLDataWithLink(String url, MusapCallback<MusapLink> callback) {
         String fcmToken = UUID.randomUUID().toString();
         MusapLink link = new MusapLink(url, null);
