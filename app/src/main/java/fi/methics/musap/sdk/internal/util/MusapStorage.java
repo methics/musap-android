@@ -34,6 +34,11 @@ public class MusapStorage {
      * @param rp Relying Party
      */
     public void storeRelyingParty(RelyingParty rp) {
+        if (rp == null) {
+            MLog.d("Not storing null RP");
+            return;
+        }
+
         List<RelyingParty> rps = listRelyingParties();
         if (rps == null || rps.isEmpty()) {
             rps = new ArrayList<>();
