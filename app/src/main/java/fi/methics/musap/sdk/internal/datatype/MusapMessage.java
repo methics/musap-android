@@ -1,13 +1,22 @@
 package fi.methics.musap.sdk.internal.datatype;
 
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Message between the MUSAP library and MUSAP link
  */
 public class MusapMessage {
 
-    public String payload;
+    @SerializedName("type")
     public String type;
-    public String uuid;
+
+    @SerializedName("musapid")
+    public String musapId;
+
+    @SerializedName("payload")
+    public String payload;
+
     public String transid;
     public String requestid;
     public String mac;
@@ -17,4 +26,7 @@ public class MusapMessage {
     private transient boolean isMt;
     private transient boolean isEncrypted;
 
+    public String toJson() {
+        return new Gson().toJson(this);
+    }
 }

@@ -2,6 +2,8 @@ package fi.methics.musap.sdk.internal.sign;
 
 import android.app.Activity;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
@@ -21,13 +23,29 @@ import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
  */
 public class SignatureReq {
 
+    @SerializedName("key")
     protected MusapKey key;
+
+    @SerializedName("data")
     protected byte[]  data;
+
+    @SerializedName(value="display", alternate = { "displayText" })
     protected String  displayText;
+
+    @SerializedName("algorithm")
     protected SignatureAlgorithm algorithm;
+
+    @SerializedName("format")
     protected SignatureFormat format;
-    protected Activity activity;
+
+    @SerializedName("attributes")
     protected List<SignatureAttribute> attributes;
+
+
+
+    protected String transId;
+
+    protected transient Activity activity;
 
     private SignatureReq(Builder builder) {
         this.key         = builder.key;
@@ -46,12 +64,20 @@ public class SignatureReq {
         this.attributes = attributes;
     }
 
+    public void setTransId(String transId) {
+        this.transId = transId;
+    }
+
     /**
      * Get the public key reference of the key to use
      * @return key reference
      */
     public MusapKey getKey() {
         return key;
+    }
+
+    public String getTransId() {
+        return transId;
     }
 
     /**

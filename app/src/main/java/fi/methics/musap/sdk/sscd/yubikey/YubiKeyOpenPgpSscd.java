@@ -378,14 +378,19 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         MLog.d("Device supports ECC=" + openpgp.supports(OpenPgpSession.FEATURE_EC_KEYS));
 
-        Security.removeProvider("BC");
-        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        MLog.d("Preparing...");
+
+//        Security.removeProvider("BC");
+//        MLog.d("Remove provider");
+//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+//        MLog.d("Insert provider");
         openpgp.verifyAdminPin(DEFAULT_ADMIN_PIN);
+
+        MLog.d("Trying to generate a key");
 
         PublicKey publicKey = openpgp.generateEcKey(KeyRef.SIG, OpenPgpCurve.Ed25519).toPublicKey();
         openpgp.verifyUserPin(pin.toCharArray(), false);
         MLog.d("Generated KeyPair");
-
 
         // TODO: Remove this signature test code
         byte[] message = "hello".getBytes(StandardCharsets.UTF_8);
@@ -448,6 +453,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         keyBuilder.setSscdId(this.getSscdInfo().getSscdId());
         keyBuilder.setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3));
         keyBuilder.setKeyId(IdGenerator.generateKeyId());
+        keyBuilder.setAlgorithm(req.getAlgorithm());
 
         this.keygenFuture.complete(new KeyGenerationResult(keyBuilder.build()));
 

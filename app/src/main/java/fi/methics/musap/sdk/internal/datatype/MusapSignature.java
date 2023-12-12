@@ -82,6 +82,15 @@ public class MusapSignature {
     }
 
     /**
+     * Get the public key associated with this signature
+     * @return public key if available. otherwise null.
+     */
+    public PublicKey getPublicKey() {
+        if (this.key == null) return null;
+        return this.key.getPublicKey();
+    }
+
+    /**
      * Get the signature bytes
      * @return signature bytes
      */

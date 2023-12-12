@@ -51,7 +51,7 @@ public class SignatureAlgorithm {
 
     public SignatureAlgorithm(String scheme, String hashAlgorithm) {
         this.scheme        = scheme;
-        this.hashAlgorithm = hashAlgorithm != null ? hashAlgorithm.toUpperCase() : null;
+        this.hashAlgorithm = hashAlgorithm != null ? hashAlgorithm.toUpperCase().replace("-", "") : null;
     }
 
     /**

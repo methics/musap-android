@@ -66,6 +66,24 @@ public class KeyAlgorithm {
         return PRIMITIVE_EC.equals(this.primitive);
     }
 
+    /**
+     * Map this key to a SignatureAlgorithm with the given hash algorithm
+     * @param hashAlgo Hash algorithm (e.g. SHA256)
+     * @return
+     */
+    public SignatureAlgorithm toSignatureAlgorithm(String hashAlgo) {
+        if (hashAlgo == null) hashAlgo = SignatureAlgorithm.HASH_SHA256;
+        if (this.isRsa()) {
+            return new SignatureAlgorithm(SignatureAlgorithm.SCHEME_RSA, hashAlgo);
+        } else {
+            if (CURVE_25519.equals(this.curve)) {
+                return SignatureAlgorithm.EDDSA;
+            } else {
+                return new SignatureAlgorithm(SignatureAlgorithm.SCHEME_ECDSA, hashAlgo);
+            }
+        }
+    }
+
     @Override
     public String toString() {
         if (curve != null) {
