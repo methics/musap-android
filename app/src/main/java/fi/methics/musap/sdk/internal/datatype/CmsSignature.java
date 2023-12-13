@@ -22,6 +22,7 @@ public class CmsSignature extends MusapSignature {
             throw new MusapException(e);
         }
     }
+
     public CmsSignature(byte[] cms, MusapKey key, SignatureAlgorithm algorithm) throws MusapException {
         super(cms, key, algorithm, SignatureFormat.CMS);
         try {
