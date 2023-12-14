@@ -343,7 +343,7 @@ public class MusapClient {
      * @return MUSAP Link or null if not enabled yet
      */
     public static MusapLink getMusapLink() {
-        return  new MusapStorage(context.get()).getMusapLink();
+        return new MusapStorage(context.get()).getMusapLink();
     }
 
 }

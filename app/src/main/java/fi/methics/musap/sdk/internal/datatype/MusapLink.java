@@ -23,6 +23,8 @@ public class MusapLink {
     private static final String ENROLL_MSG_TYPE       = "enrolldata";
     private static final String POLL_MSG_TYPE         = "getdata";
     private static final String SIG_CALLBACK_MSG_TYPE = "signaturecallback";
+    private static final String SIGN_MSG_TYPE         = "externalsignature";
+
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -208,7 +210,6 @@ public class MusapLink {
         }
     }
 
-
     /**
      * Send a signature callback to MUSAP Link.
      * This performs networking operations.
@@ -244,6 +245,49 @@ public class MusapLink {
                 if (respMsg == null || respMsg.payload == null) {
                     MLog.d("Null payload");
                 }
+            }
+        }
+    }
+  
+    /**
+     * Request external Signature with the "externalsignature" Coupling API
+     * @param payload External Signature request payload
+     * @return External Signature response payload
+     * @throws IOException
+     */
+    public ExternalSignatureResponsePayload sign(ExternalSignaturePayload payload) throws IOException {
+
+        MusapMessage msg = new MusapMessage();
+        msg.payload = payload.toBase64();
+        msg.type    = SIGN_MSG_TYPE;
+        MLog.d("Message=" + msg.toJson());
+
+        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
+        Request request = new Request.Builder()
+                .url(this.url)
+                .post(body)
+                .build();
+        OkHttpClient client = new OkHttpClient.Builder().build();
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() != null) {
+                String sResp = response.body().string();
+                MLog.d("Got response " + sResp);
+
+                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+                MLog.d("Response payload=" + respMsg.payload);
+                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+                MLog.d("Decoded=" + payloadJson);
+
+                ExternalSignatureResponsePayload resp = GSON.fromJson(payloadJson, ExternalSignatureResponsePayload.class);
+                MLog.d("Parsed payload");
+                if (resp.isSuccess()) {
+                    return resp;
+                } else {
+                    return null;
+                }
+            } else {
+                MLog.d("Null response");
+                return null;
             }
         }
     }
