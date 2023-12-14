@@ -56,7 +56,7 @@ public class SignaturePayload {
      * @param key MUSAP Key chosen by the system or by the user
      * @return {@link SignatureReq}
      */
-    public SignatureReq toSignatureReq(MusapKey key) {
+    protected SignatureReq toSignatureReq(MusapKey key) {
 
         SignatureFormat format = SignatureFormat.fromString(this.format);
         KeyAlgorithm   keyAlgo = key.getAlgorithm();
@@ -64,15 +64,15 @@ public class SignaturePayload {
         if (this.scheme == null) {
             signAlgo = keyAlgo.toSignatureAlgorithm(this.hashalgo);
         } else {
-            signAlgo = new SignatureAlgorithm(scheme, hashalgo);
+            signAlgo = new SignatureAlgorithm(this.scheme, this.hashalgo);
         }
 
         return new SignatureReq.Builder(signAlgo)
                 .setData(Base64.decode(this.data, Base64.NO_WRAP))
                 .setFormat(format)
                 .setKey(key)
-                .setDisplayText(display)
-                .setAttributes(attributes)
+                .setDisplayText(this.display)
+                .setAttributes(this.attributes)
                 .createSignatureReq();
     }
 

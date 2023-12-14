@@ -1,15 +1,17 @@
 package fi.methics.musap.sdk.api;
 
-import android.app.Activity;
 import android.content.Context;
 
 import com.google.gson.JsonSyntaxException;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import java.lang.ref.WeakReference;
+import java.security.Security;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -19,9 +21,11 @@ import fi.methics.musap.sdk.internal.async.BindKeyTask;
 import fi.methics.musap.sdk.internal.async.EnrollDataTask;
 import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
 import fi.methics.musap.sdk.internal.async.CoupleTask;
+import fi.methics.musap.sdk.internal.async.PollTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
+import fi.methics.musap.sdk.internal.async.SignatureCallbackTask;
+import fi.methics.musap.sdk.internal.datatype.PollResp;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
-import fi.methics.musap.sdk.internal.datatype.SignaturePayload;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.discovery.MusapImportData;
 import fi.methics.musap.sdk.internal.discovery.SscdSearchReq;
@@ -45,13 +49,23 @@ public class MusapClient {
     private static WeakReference<Context> context;
     private static KeyDiscoveryAPI keyDiscovery;
     private static MetadataStorage storage;
-    private static Executor executor;
+    private static ExecutorService executor;
+
+    /**
+     * Limit UI related tasks to 1 to avoid concurrency problems.
+     */
+//    private static Semaphore uiSemaphore = new Semaphore(1);
 
     public static void init(Context c) {
+        Security.removeProvider("BC");
+        MLog.d("Remove provider");
+        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        MLog.d("Insert provider");
+
         context      = new WeakReference<>(c);
         keyDiscovery = new KeyDiscoveryAPI(c);
         storage      = new MetadataStorage(c);
-        executor     = new ThreadPoolExecutor(2, 5, 5000, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(5));
+        executor     = new ThreadPoolExecutor(2, 20, 5000, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(5));
     }
 
     /**
@@ -75,12 +89,21 @@ public class MusapClient {
     }
 
     /**
-     * Sign data with given SSCD
+     * Sign data with given SSCD.
+     * Note! MUSAP allows only one active signing operation at a time. If you try to start another
+     * signature while one is in progress, MUSAP ignores the second signature.
+     *
      * @param req  Request containing the data to sign
      * @param callback Callback that will deliver success or failure
      */
     public static void sign(SignatureReq req, MusapCallback<MusapSignature> callback) {
-        new SignTask(callback, context.get(), req).executeOnExecutor(executor);
+
+        // TODO: Some way to limit concurrent operations.
+//        if (!uiSemaphore.tryAcquire()) {
+//            MLog.d("UI operation is in progress, not starting a new one");
+//            return;
+//        }
+        new SignTask(callback, context.get(), null, req).executeOnExecutor(executor);
     }
 
 
@@ -250,6 +273,15 @@ public class MusapClient {
         return new MusapStorage(context.get()).listRelyingParties();
     }
 
+    /**
+     * Remove a previously linked Relying Party from this MUSAP app.
+     * @param rp
+     * @return True if removal was successful.
+     */
+    public static boolean removeRelyingParty(RelyingParty rp) {
+        return new MusapStorage(context.get()).removeRelyingParty(rp);
+    }
+
     public static void enrolLDataWithLink(String url, MusapCallback<MusapLink> callback) {
         String fcmToken = UUID.randomUUID().toString();
         MusapLink link = new MusapLink(url, null);
@@ -257,9 +289,18 @@ public class MusapClient {
     }
 
     public static void coupleWithLink(String url, String couplingCode, MusapCallback<RelyingParty> callback) {
-        String appId = getMusapId();
-        MusapLink link = new MusapLink(url, appId);
-        new CoupleTask(link, couplingCode, appId, callback, context.get()).executeOnExecutor(executor);
+        String musapId = getMusapId();
+        MusapLink link = new MusapLink(url, musapId);
+        new CoupleTask(link, couplingCode, musapId, callback, context.get()).executeOnExecutor(executor);
+    }
+
+    public static void sendSignatureCallback(MusapSignature signature, String txnId) {
+        MusapLink link = getMusapLink();
+        if (link != null) {
+            String musapId = getMusapId();
+            link.setMusapId(musapId);
+            new SignatureCallbackTask(link, signature, txnId,null, context.get()).executeOnExecutor(executor);
+        }
     }
 
     /**
@@ -273,18 +314,10 @@ public class MusapClient {
     /**
      * Poll MUSAP Link for an incoming signature request. This should be called periodically and/or
      * when a notification wakes up the application.
-     * @return SignaturePayload or null if no request available
-     * @throws MusapException if polling failed (e.g. a network issue)
+     * Calls the callback when when signature is received, or polling failed.
      */
-    public static SignaturePayload pollLink() throws MusapException {
-        MusapLink link = getMusapLink();
-        if (link == null) return null;
-        try {
-            SignaturePayload payload = link.poll();
-            return payload;
-        } catch (Exception e) {
-            throw new MusapException(e);
-        }
+    public static void pollLink(String url, MusapCallback<PollResp> callback) {
+        new PollTask(getMusapLink(), callback, context.get()).executeOnExecutor(executor);
     }
 
     /**
@@ -294,7 +327,7 @@ public class MusapClient {
      * @param isDebug
      */
     public static void setDebugLog(boolean isDebug) {
-        MLog.setDebugEnabled(false);
+        MLog.setDebugEnabled(isDebug);
     }
 
     /**

@@ -34,12 +34,42 @@ public class MusapStorage {
      * @param rp Relying Party
      */
     public void storeRelyingParty(RelyingParty rp) {
+        if (rp == null) {
+            MLog.d("Not storing null RP");
+            return;
+        }
+
         List<RelyingParty> rps = listRelyingParties();
         if (rps == null || rps.isEmpty()) {
             rps = new ArrayList<>();
         }
         rps.add(rp);
         this.storePrefValue(RP_PREF, GSON.toJson(rps));
+    }
+
+    public boolean removeRelyingParty(RelyingParty rp) {
+        if (rp == null) {
+            MLog.d("Cannot remove null Relying Party");
+            return false;
+        }
+
+        boolean removed = false;
+        List<RelyingParty> newRps = new ArrayList<>();
+        List<RelyingParty> oldRps = listRelyingParties();
+
+        // Copy all old RPs except the one to be removed to a new list.
+        for (RelyingParty oldRp: oldRps) {
+            if (oldRp.getLinkID().equalsIgnoreCase(rp.getLinkID())) {
+               MLog.d("Removing RP " + oldRp.getLinkID());
+               removed = true;
+            } else {
+                newRps.add(oldRp);
+            }
+        }
+
+        this.storePrefValue(RP_PREF, GSON.toJson(newRps));
+
+        return removed;
     }
 
     /**
@@ -89,4 +119,6 @@ public class MusapStorage {
     private SharedPreferences getSharedPref() {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
+
+
 }

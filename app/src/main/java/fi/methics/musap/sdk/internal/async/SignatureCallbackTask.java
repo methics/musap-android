@@ -5,29 +5,33 @@ import android.content.Context;
 import fi.methics.musap.sdk.api.MusapCallback;
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
+import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.util.AsyncTaskResult;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapAsyncTask;
-import fi.methics.musap.sdk.internal.util.MusapStorage;
 
-public class EnrollDataTask extends MusapAsyncTask<MusapLink>  {
+/**
+ * Sends MUSAP Signature Callback
+ */
+public class SignatureCallbackTask extends MusapAsyncTask<Void> {
 
     private final MusapLink link;
-    private final String fcmToken;
+    private final MusapSignature signature;
 
-    public EnrollDataTask(MusapLink link, String fcmToken, MusapCallback<MusapLink> callback, Context context) {
+    private final String txnId;
+
+    public SignatureCallbackTask(MusapLink link, MusapSignature signature, String txnId, MusapCallback<Void> callback, Context context) {
         super(callback, context);
         this.link = link;
-        this.fcmToken = fcmToken;
+        this.signature = signature;
+        this.txnId = txnId;
     }
 
     @Override
-
-    protected AsyncTaskResult<MusapLink> runOperation() throws MusapException {
+    protected AsyncTaskResult<Void> runOperation() throws MusapException {
         try {
-           this.link.enroll(this.fcmToken);
-           new MusapStorage(this.context.get()).storeLink(this.link);
-           return new AsyncTaskResult<>(this.link);
+            link.sendSignatureCallback(signature, txnId);
+            return new AsyncTaskResult<>(null);
         } catch (Exception e) {
             MLog.e("Failed", e);
             throw new MusapException(e);

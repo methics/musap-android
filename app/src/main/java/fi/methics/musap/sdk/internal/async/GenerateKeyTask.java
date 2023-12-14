@@ -40,6 +40,7 @@ public class GenerateKeyTask extends MusapAsyncTask<MusapKey> {
             storage.addKey(key, activeSscd);
             return new AsyncTaskResult<>(key);
         } catch (Exception e) {
+            MLog.e("Failed to generate key", e);
             throw new MusapException(e);
         }
     }
