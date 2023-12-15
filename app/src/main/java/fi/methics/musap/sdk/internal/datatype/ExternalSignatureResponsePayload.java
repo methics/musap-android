@@ -34,6 +34,7 @@ public class ExternalSignatureResponsePayload {
     }
 
     public byte[] getRawSignature() {
+        if (this.signature == null) return null;
         return Base64.decode(this.signature, Base64.NO_WRAP);
     }
 

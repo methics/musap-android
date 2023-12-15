@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -26,7 +25,6 @@ import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
-import fi.methics.musap.sdk.internal.datatype.KeyURI;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
@@ -295,7 +293,7 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
                 MLog.d("Successfully bound REST 204 SSCD");
                 MusapKey.Builder builder = new MusapKey.Builder();
                 builder.setCertificate(signature.getSignerCertificate());
-                builder.setKeyName(req.getKeyAlias());
+                builder.setKeyAlias(req.getKeyAlias());
                 builder.setSscdType(SSCD_TYPE);
                 builder.setSscdId(this.getSscdInfo().getSscdId());
                 builder.setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3));

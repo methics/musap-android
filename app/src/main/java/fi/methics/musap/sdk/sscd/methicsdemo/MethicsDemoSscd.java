@@ -22,7 +22,6 @@ import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
-import fi.methics.musap.sdk.internal.datatype.KeyURI;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
@@ -204,7 +203,7 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
                 MLog.d("Successfully bound Methics Demo SSCD");
                 MusapKey.Builder builder = new MusapKey.Builder();
                 builder.setCertificate(signature.getSignerCertificate());
-                builder.setKeyName(req.getKeyAlias());
+                builder.setKeyAlias(req.getKeyAlias());
                 builder.setSscdType(SSCD_TYPE);
                 builder.setSscdId(this.getSscdInfo().getSscdId());
                 builder.setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3));

@@ -3,7 +3,6 @@ package fi.methics.musap.sdk.internal.datatype;
 
 import android.util.Log;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,7 +32,7 @@ public class KeyURI {
     public KeyURI(MusapKey key) {
 
         // TODO: Rename key.getKeyName() to key.getKeyAlias()
-        if (key.getKeyName()     != null) keyUriMap.put(ALIAS,      key.getKeyName());
+        if (key.getKeyAlias()     != null) keyUriMap.put(ALIAS,      key.getKeyAlias());
         if (key.getAlgorithm()   != null) keyUriMap.put(ALGORITHM,  key.getAlgorithm().isEc() ? "EC" : "RSA");
         if (key.getCreatedDate() != null && key.getCreatedDate().toEpochMilli() != 0) {
             keyUriMap.put(CREATED_DT, key.getCreatedDate().toString().split("T")[0]);

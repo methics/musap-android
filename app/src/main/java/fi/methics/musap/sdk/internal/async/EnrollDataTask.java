@@ -25,9 +25,9 @@ public class EnrollDataTask extends MusapAsyncTask<MusapLink>  {
 
     protected AsyncTaskResult<MusapLink> runOperation() throws MusapException {
         try {
-           this.link.enroll(this.fcmToken);
-           new MusapStorage(this.context.get()).storeLink(this.link);
-           return new AsyncTaskResult<>(this.link);
+           MusapLink link = this.link.enroll(this.fcmToken);
+           new MusapStorage(this.context.get()).storeLink(link);
+           return new AsyncTaskResult<>(link);
         } catch (Exception e) {
             MLog.e("Failed", e);
             throw new MusapException(e);

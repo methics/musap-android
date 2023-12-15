@@ -447,7 +447,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         MusapKey.Builder keyBuilder = new MusapKey.Builder();
         keyBuilder.setCertificate(cert);
-        keyBuilder.setKeyName(req.getKeyAlias());
+        keyBuilder.setKeyAlias(req.getKeyAlias());
         keyBuilder.addAttribute(ATTRIBUTE_SERIAL, Integer.toHexString(openpgp.getAid().getSerial()));
         keyBuilder.setSscdType(this.getSscdInfo().getSscdType());
         keyBuilder.setSscdId(this.getSscdInfo().getSscdId());

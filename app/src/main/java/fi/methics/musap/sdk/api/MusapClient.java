@@ -189,7 +189,7 @@ public class MusapClient {
         MetadataStorage storage = new MetadataStorage(context.get());
         for (MusapKey key : storage.listKeys()) {
             if (key.getKeyUri().matches(new KeyURI(keyUri))) {
-                MLog.d("Found key " + key.getKeyName());
+                MLog.d("Found key " + key.getKeyAlias());
                 return key;
             }
         }
@@ -255,7 +255,7 @@ public class MusapClient {
      * @param url URL of the MUSAP link service
      */
     public static void enableLink(String url) {
-        enrolLDataWithLink(url, null);
+        enrollDataWithLink(url, null);
     }
 
     /**
@@ -282,7 +282,7 @@ public class MusapClient {
         return new MusapStorage(context.get()).removeRelyingParty(rp);
     }
 
-    public static void enrolLDataWithLink(String url, MusapCallback<MusapLink> callback) {
+    public static void enrollDataWithLink(String url, MusapCallback<MusapLink> callback) {
         String fcmToken = UUID.randomUUID().toString();
         MusapLink link = new MusapLink(url, null);
         new EnrollDataTask(link, fcmToken, callback, context.get()).executeOnExecutor(executor);

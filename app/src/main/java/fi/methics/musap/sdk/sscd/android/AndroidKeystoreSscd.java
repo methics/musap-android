@@ -8,7 +8,6 @@ import android.util.Base64;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -21,9 +20,7 @@ import java.security.spec.RSAKeyGenParameterSpec;
 import java.util.Arrays;
 
 import fi.methics.musap.sdk.api.MusapConstants;
-import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
-import fi.methics.musap.sdk.internal.datatype.KeyURI;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.datatype.PublicKey;
@@ -36,7 +33,6 @@ import fi.methics.musap.sdk.internal.datatype.MusapSscd;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
-import fi.methics.musap.sdk.internal.util.MBase64;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 /**
@@ -96,7 +92,7 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
 
         MusapKey generatedKey = new MusapKey.Builder()
                 .setSscdType(MusapConstants.ANDROID_KS_TYPE)
-                .setKeyName(req.getKeyAlias())
+                .setKeyAlias(req.getKeyAlias())
                 .setSscdId(sscd.getSscdId())
                 .setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3))
                 .setPublicKey(new PublicKey(keyPair))
@@ -109,7 +105,7 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
 
     @Override
     public MusapSignature sign(SignatureReq req) throws GeneralSecurityException, IOException {
-        String alias = req.getKey().getKeyName();
+        String alias = req.getKey().getKeyAlias();
 
         KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
         ks.load(null);

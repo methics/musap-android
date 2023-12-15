@@ -10,8 +10,7 @@ import fi.methics.musap.sdk.internal.util.MLog;
 
 public class MusapKey {
 
-    // TODO: Rename to alias
-    private String keyName;
+    private String keyAlias;
     private String keyType;
 
     private String keyId;
@@ -32,7 +31,7 @@ public class MusapKey {
     private KeyAttestation attestation;
 
     private MusapKey(Builder builder) {
-        this.keyName          = builder.keyName;
+        this.keyAlias         = builder.keyAlias;
         this.keyType          = builder.keyType;
         this.keyId            = builder.keyId;
         this.sscdId           = builder.sscdId;
@@ -60,8 +59,8 @@ public class MusapKey {
         this.keyId = keyId;
     }
 
-    public String getKeyName() {
-        return keyName;
+    public String getKeyAlias() {
+        return keyAlias;
     }
 
     public String getKeyType() {
@@ -173,7 +172,7 @@ public class MusapKey {
 
     public SignatureAlgorithm getDefaultsignatureAlgorithm() {
         if (this.algorithm == null) {
-            MLog.d("Unable to determine algorithm for key " + this.keyName);
+            MLog.d("Unable to determine algorithm for key " + this.keyAlias);
             return SignatureAlgorithm.SHA256_WITH_ECDSA;
         }
         if (this.algorithm.isRsa()) {
@@ -220,7 +219,7 @@ public class MusapKey {
     }
 
     public void setAlias(String alias) {
-        this.keyName = alias;
+        this.keyAlias = alias;
     }
 
     public void setDid(String did) {
@@ -232,7 +231,7 @@ public class MusapKey {
     }
 
     public static class Builder {
-        private String keyName;
+        private String keyAlias;
         private String keyType;
         private String keyId;
         private String sscdId;
@@ -247,8 +246,8 @@ public class MusapKey {
 
         private KeyAttestation attestation;
 
-        public Builder setKeyName(String keyName) {
-            this.keyName = keyName;
+        public Builder setKeyAlias(String keyAlias) {
+            this.keyAlias = keyAlias;
             return this;
         }
 

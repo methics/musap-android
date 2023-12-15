@@ -29,22 +29,22 @@ public class MusapLink {
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
     private String url;
-    private String id;
+    private String musapid;
 
     private String aesKey;
     private String macKey;
 
-    public MusapLink(String url, String id) {
-        this.url = url;
-        this.id  = id;
+    public MusapLink(String url, String musapid) {
+        this.url     = url;
+        this.musapid = musapid;
     }
 
     /**
      * Set MUSAP ID
-     * @param id MUSAP ID
+     * @param musapid MUSAP ID
      */
-    public void setMusapId(String id) {
-        this.id = id;
+    public void setMusapId(String musapid) {
+        this.musapid = musapid;
     }
 
     /**
@@ -52,7 +52,7 @@ public class MusapLink {
      * @return MUSAP ID
      */
     public String getMusapId() {
-        return this.id;
+        return this.musapid;
     }
 
     public void setAesKey(String aesKey) {
@@ -103,7 +103,7 @@ public class MusapLink {
                 MLog.d("Decoded=" + payloadJson);
                 EnrollDataResponsePayload respPayload = GSON.fromJson(payloadJson, EnrollDataResponsePayload.class);
 
-                this.id = respPayload.getMusapId();
+                this.musapid = respPayload.getMusapId();
                 return this;
             } else {
                 MLog.d("Null response");
@@ -173,7 +173,7 @@ public class MusapLink {
     public PollResp poll() throws IOException {
         MusapMessage msg = new MusapMessage();
         msg.type = POLL_MSG_TYPE;
-        msg.musapId = this.id;
+        msg.musapId = this.musapid;
         MLog.d("Message=" + msg.toJson());
         MLog.d("Url=" + this.url);
 
@@ -225,7 +225,7 @@ public class MusapLink {
         MusapMessage msg = new MusapMessage();
         msg.type = SIG_CALLBACK_MSG_TYPE;
         msg.payload = payload.toBase64();
-        msg.musapId = this.id;
+        msg.musapId = this.musapid;
         msg.transid = transId;
         MLog.d("Message=" + msg.toJson());
         MLog.d("Url=" + this.url);
@@ -260,6 +260,7 @@ public class MusapLink {
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
         msg.type    = SIGN_MSG_TYPE;
+        msg.musapId = getMusapId();
         MLog.d("Message=" + msg.toJson());
 
         RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
@@ -274,17 +275,17 @@ public class MusapLink {
                 MLog.d("Got response " + sResp);
 
                 MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+                if (respMsg == null || respMsg.payload == null) {
+                    MLog.d("Null payload");
+                    return null;
+                }
                 MLog.d("Response payload=" + respMsg.payload);
                 String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
                 MLog.d("Decoded=" + payloadJson);
 
                 ExternalSignatureResponsePayload resp = GSON.fromJson(payloadJson, ExternalSignatureResponsePayload.class);
                 MLog.d("Parsed payload");
-                if (resp.isSuccess()) {
-                    return resp;
-                } else {
-                    return null;
-                }
+                return resp;
             } else {
                 MLog.d("Null response");
                 return null;

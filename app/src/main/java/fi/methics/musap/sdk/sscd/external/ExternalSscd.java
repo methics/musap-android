@@ -1,50 +1,28 @@
 package fi.methics.musap.sdk.sscd.external;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.text.InputType;
 import android.util.Base64;
-import android.view.Gravity;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
-import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
-import fi.methics.musap.sdk.internal.datatype.CouplingPayload;
-import fi.methics.musap.sdk.internal.datatype.CouplingResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.ExternalSignaturePayload;
 import fi.methics.musap.sdk.internal.datatype.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
-import fi.methics.musap.sdk.internal.datatype.MusapLoA;
-import fi.methics.musap.sdk.internal.datatype.MusapMessage;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.datatype.MusapSscd;
-import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
-import fi.methics.musap.sdk.internal.util.MBase64;
-import fi.methics.musap.sdk.internal.util.MLog;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /**
  * SSCD that uses MUSAP Link to request signatures with the "externalsign" Coupling API call
@@ -71,19 +49,27 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         this.context   = context;
         this.settings  = settings;
         this.musapLink = settings.getMusapLink();
+        this.clientid  = settings.getClientId();
         this.client    = new OkHttpClient.Builder().readTimeout(settings.getTimeout()).build();
     }
 
     @Override
     public MusapKey bindKey(KeyBindReq req) throws Exception {
 
-        ExternalSignaturePayload         request  = new ExternalSignaturePayload(this.clientid);
-        ExternalSignatureResponsePayload response = this.musapLink.sign(request);
+        ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
 
+        request.data = Base64.encodeToString("Bind Key".getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+        request.attributes.put(ATTRIBUTE_MSISDN, "35847001001");
+        request.clientid = this.clientid;
+        request.display  = req.getDisplayText();
+        request.format   = "CMS";
+
+        ExternalSignatureResponsePayload response = this.musapLink.sign(request);
         CmsSignature signature = new CmsSignature(response.getRawSignature());
 
         return new MusapKey.Builder()
                 .setCertificate(signature.getSignerCertificate())
+                .setKeyAlias(req.getKeyAlias())
                 .build();
     }
 
@@ -95,7 +81,13 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
 
-        ExternalSignaturePayload         request  = new ExternalSignaturePayload(this.clientid);
+        ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
+        request.attributes.put(ATTRIBUTE_MSISDN, "35847001001");
+        request.clientid = this.clientid;
+        request.display  = req.getDisplayText();
+        request.format   = req.getFormat().getFormat();
+        request.data     = Base64.encodeToString(req.getData(), Base64.NO_WRAP);
+
         ExternalSignatureResponsePayload response = this.musapLink.sign(request);
 
         return new MusapSignature(response.getRawSignature());
