@@ -6,6 +6,7 @@ import java.util.List;
 
 import fi.methics.musap.sdk.api.MusapClient;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
+import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 public class MusapKey {
@@ -320,6 +321,9 @@ public class MusapKey {
         }
 
         public MusapKey build() {
+            if (this.keyId == null) {
+                this.keyId = IdGenerator.generateKeyId();
+            }
             return new MusapKey(this);
         }
     }
