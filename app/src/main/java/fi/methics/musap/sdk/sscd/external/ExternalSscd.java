@@ -13,6 +13,7 @@ import fi.methics.musap.sdk.internal.datatype.CmsSignature;
 import fi.methics.musap.sdk.internal.datatype.ExternalSignaturePayload;
 import fi.methics.musap.sdk.internal.datatype.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
+import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
@@ -58,8 +59,10 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
 
+        String msisdn = "35847001001"; // TODO
+
         request.data = Base64.encodeToString("Bind Key".getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
-        request.attributes.put(ATTRIBUTE_MSISDN, "35847001001");
+        request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
         request.format   = "CMS";
@@ -70,6 +73,8 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         return new MusapKey.Builder()
                 .setCertificate(signature.getSignerCertificate())
                 .setKeyAlias(req.getKeyAlias())
+                .setSscd(this.getSscdInfo())
+                .addAttribute(new KeyAttribute(ATTRIBUTE_MSISDN, msisdn))
                 .build();
     }
 
@@ -81,8 +86,10 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
 
+        String msisdn = "35847001001"; // TODO
+
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
-        request.attributes.put(ATTRIBUTE_MSISDN, "35847001001");
+        request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
         request.format   = req.getFormat().getFormat();

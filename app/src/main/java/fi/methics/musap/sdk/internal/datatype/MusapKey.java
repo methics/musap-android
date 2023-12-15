@@ -262,6 +262,12 @@ public class MusapKey {
             return this;
         }
 
+        public Builder setSscd(MusapSscd sscd) {
+            this.sscdId   = sscd.getSscdId();
+            this.sscdType = sscd.getSscdType();
+            return this;
+        }
+
         public Builder setSscdType(String sscdType) {
             this.sscdType = sscdType;
             return this;
