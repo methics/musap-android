@@ -25,6 +25,9 @@ public class ExternalSignatureResponsePayload {
     @SerializedName("certificate")
     public String certificate;
 
+    @SerializedName("transid")
+    public String transid;
+
     @SerializedName("attributes")
     public Map<String, String> attributes = new HashMap<>();
 
