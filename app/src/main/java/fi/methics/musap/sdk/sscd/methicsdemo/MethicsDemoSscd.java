@@ -64,7 +64,20 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
     @Override
     public MusapKey bindKey(KeyBindReq req) throws Exception {
         CompletableFuture<DemoBindResult> future = new CompletableFuture<>();
-        openKeygenPopup(req, future);
+
+        String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
+
+        if (msisdn == null) {
+            openMsisdnPopup(req, future);
+        } else {
+            try {
+                MusapKey key = _bindKey(req, msisdn);
+                future.complete(new DemoBindResult(key));
+            } catch (MusapException e) {
+                MLog.e("Failed to bind key", e);
+                future.complete(new DemoBindResult(e));
+            }
+        }
 
         DemoBindResult result = future.get();
         if (result.key       != null) return result.key;
@@ -129,7 +142,12 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
         return settings;
     }
 
-    private void openKeygenPopup(KeyBindReq req, CompletableFuture<DemoBindResult> future) {
+    /**
+     * Open MSISDN popup. Call BindKey when the user has entered MSISDN.
+     * @param req    Bind Request
+     * @param future Future to populate with the BindKey result
+     */
+    private void openMsisdnPopup(KeyBindReq req, CompletableFuture<DemoBindResult> future) {
 
         PopupWindow popupWindow = new PopupWindow(context);
         TextView   popupContent = new TextView(context);

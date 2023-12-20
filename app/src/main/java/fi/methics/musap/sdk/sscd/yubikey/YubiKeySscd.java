@@ -186,7 +186,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
             throw new IllegalArgumentException();
         }
         MLog.d("Building view");
-        Activity activity = this.keyGenReq != null ? this.keyGenReq.getActivity() : this.sigReq.getActivity();
+        Activity activity = this.getActivity();
         View v = LayoutInflater.from(activity).inflate(R.layout.dialog_pin, null);
 
         MLog.d("Running on UI thread. Activity=" + activity.getClass());
@@ -232,7 +232,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         });
     }
 
-    public void showKeyGenFailedDualog(KeyGenReq req) {
+    public void showKeyGenFailedDialog(KeyGenReq req) {
 
         // Dismiss old dialog if it it showing
         req.getActivity().runOnUiThread(() -> {
@@ -341,14 +341,14 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
                 // If the connection is not successful, try again
                 if (!success) {
                     MLog.d("Failed to connect");
-                    this.showKeyGenFailedDualog(req);
+                    this.showKeyGenFailedDialog(req);
                 } else {
                     MLog.d("PIN=" + pin);
                     keyGenOnDevice(req, pin, result.getValue());
                 }
             } catch (Exception e) {
                 MLog.e("Failed to connect", e);
-                this.showKeyGenFailedDualog(req);
+                this.showKeyGenFailedDialog(req);
                 yubiKitManager.stopNfcDiscovery(req.getActivity());
             }
         });
