@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype;
+package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import android.util.Base64;
 
@@ -6,6 +6,11 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
+import fi.methics.musap.sdk.internal.datatype.MusapKey;
+import fi.methics.musap.sdk.internal.datatype.SignatureAlgorithm;
+import fi.methics.musap.sdk.internal.datatype.SignatureAttribute;
+import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 
 public class SignaturePayload {
@@ -59,7 +64,7 @@ public class SignaturePayload {
     protected SignatureReq toSignatureReq(MusapKey key) {
 
         SignatureFormat format = SignatureFormat.fromString(this.format);
-        KeyAlgorithm   keyAlgo = key.getAlgorithm();
+        KeyAlgorithm keyAlgo = key.getAlgorithm();
         SignatureAlgorithm signAlgo;
         if (this.scheme == null) {
             signAlgo = keyAlgo.toSignatureAlgorithm(this.hashalgo);

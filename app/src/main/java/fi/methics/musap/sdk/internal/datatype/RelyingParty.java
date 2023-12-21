@@ -2,6 +2,8 @@ package fi.methics.musap.sdk.internal.datatype;
 
 import com.google.gson.Gson;
 
+import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountResponsePayload;
+
 public class RelyingParty {
 
     private static final Gson GSON = new Gson();
@@ -9,7 +11,7 @@ public class RelyingParty {
     private String name;
     private String linkid;
 
-    public RelyingParty(CouplingResponsePayload payload) {
+    public RelyingParty(LinkAccountResponsePayload payload) {
         this.linkid = payload.linkid;
         this.name   = payload.name;
     }

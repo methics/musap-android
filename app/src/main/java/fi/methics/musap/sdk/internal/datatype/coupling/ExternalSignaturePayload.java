@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype;
+package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import android.util.Base64;
 

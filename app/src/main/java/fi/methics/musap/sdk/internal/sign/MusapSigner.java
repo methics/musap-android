@@ -52,6 +52,8 @@ public class MusapSigner {
             }
             req.setActivity(this.activity);
             MusapClient.sign(req, callback);
+        } catch (MusapException e) {
+            throw e;
         } catch (Exception e) {
             throw new MusapException(e);
         }

@@ -1,5 +1,7 @@
 package fi.methics.musap.sdk.api;
 
+import androidx.annotation.Nullable;
+
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -28,6 +30,7 @@ public class MusapException extends Exception {
     public static final int ERROR_INTERNAL      = 900;
 
     private String errorName;
+    private String errorMsg;
     private int    errorCode;
 
     public MusapException(Exception cause) {
@@ -41,29 +44,41 @@ public class MusapException extends Exception {
         } else {
             this.errorCode = ERROR_INTERNAL;
         }
+        this.errorMsg  = cause.getMessage();
         this.errorName = getErrorName(errorCode);
     }
 
     public MusapException(String msg) {
         super(msg);
+        this.errorMsg  = msg;
         this.errorCode = ERROR_INTERNAL;
         this.errorName = getErrorName(errorCode);
     }
 
+    public MusapException(Integer errorCode, Exception e) {
+        super(e);
+        this.errorMsg  = e.getMessage();
+        this.errorCode = errorCode != null ? errorCode : ERROR_INTERNAL;
+        this.errorName = getErrorName(this.errorCode);
+    }
+
     public MusapException(int errorCode, Exception e) {
         super(e);
+        this.errorMsg  = e.getMessage();
         this.errorCode = errorCode;
         this.errorName = getErrorName(errorCode);
     }
 
     public MusapException(int errorCode, String msg) {
         super(msg);
+        this.errorMsg  = msg;
         this.errorCode = errorCode;
         this.errorName = getErrorName(errorCode);
     }
 
     public MusapException(int errorCode, String msg, Exception e) {
         super(msg, e);
+        this.errorMsg  = msg;
         this.errorCode = errorCode;
         this.errorName = getErrorName(errorCode);
     }
@@ -97,6 +112,16 @@ public class MusapException extends Exception {
             default:
                 return "internal_error";
         }
+    }
+
+    @Override
+    public String getMessage() {
+        return this.errorMsg;
+    }
+
+    @Override
+    public String toString() {
+        return this.errorMsg + " (" + this.errorName + ")";
     }
 
 }

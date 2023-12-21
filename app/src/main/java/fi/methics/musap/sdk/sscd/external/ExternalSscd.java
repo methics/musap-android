@@ -17,8 +17,8 @@ import java.util.concurrent.CompletableFuture;
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
-import fi.methics.musap.sdk.internal.datatype.ExternalSignaturePayload;
-import fi.methics.musap.sdk.internal.datatype.ExternalSignatureResponsePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
@@ -30,7 +30,6 @@ import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.MLog;
-import fi.methics.musap.sdk.sscd.methicsdemo.MethicsDemoSscd;
 import fi.methics.musapsdk.R;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -72,7 +71,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
         String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
         if (msisdn == null) {
-            this.showEnterMsisdnDialog(req, future);
+            this.showEnterMsisdnDialog(req.getActivity(), future);
             msisdn = future.get();
         }
 
@@ -101,9 +100,15 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
 
-        String msisdn = "35847001001"; // TODO
-
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
+        if (msisdn == null) {
+            this.showEnterMsisdnDialog(req.getActivity(), future);
+            msisdn = future.get();
+        }
+
         request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
@@ -138,17 +143,17 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
     /**
      * Show a dialog asking for the MSISDN
-     * @param req KeyBind request
+     * @param activity Activity to inflate with the dialog
+     * @param future Future used to deliver the response
      * @throws MusapException
      */
-    public void showEnterMsisdnDialog(KeyBindReq req, CompletableFuture<String> future) throws MusapException {
-        if (req.getActivity() == null) {
+    public void showEnterMsisdnDialog(Activity activity, CompletableFuture<String> future) throws MusapException {
+        if (activity == null) {
             throw new MusapException("Cannot show MSISDN dialog");
         }
-        Activity activity = req.getActivity();
-        View view = LayoutInflater.from(req.getActivity()).inflate(R.layout.dialog_msisdn, null);
+        View view = LayoutInflater.from(activity).inflate(R.layout.dialog_msisdn, null);
 
-        req.getActivity().runOnUiThread(() -> {
+        activity.runOnUiThread(() -> {
             AlertDialog dialog = new AlertDialog.Builder(activity)
                     .setTitle("Enter your Phone Number")
                     .setView(view)
