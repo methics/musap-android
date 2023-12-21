@@ -28,7 +28,9 @@ public class SignTask extends MusapAsyncTask<MusapSignature> {
             MusapSscdInterface sscd = req.getKey().getSscdImpl();
             MusapSignature signature = sscd.sign(req);
             return new AsyncTaskResult<>(signature);
-        } catch (Exception e) {
+        } catch (MusapException e) {
+            throw e;
+        }  catch (Exception e) {
             throw new MusapException(e);
         }
     }

@@ -1,17 +1,24 @@
 package fi.methics.musap.sdk.sscd.external;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.util.Base64;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.gson.Gson;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
+import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
-import fi.methics.musap.sdk.internal.datatype.ExternalSignaturePayload;
-import fi.methics.musap.sdk.internal.datatype.ExternalSignatureResponsePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
@@ -22,6 +29,8 @@ import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
+import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musapsdk.R;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 
@@ -58,8 +67,13 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     public MusapKey bindKey(KeyBindReq req) throws Exception {
 
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
+        CompletableFuture<String> future = new CompletableFuture<>();
 
-        String msisdn = "35847001001"; // TODO
+        String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
+        if (msisdn == null) {
+            this.showEnterMsisdnDialog(req.getActivity(), future);
+            msisdn = future.get();
+        }
 
         request.data = Base64.encodeToString("Bind Key".getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
         request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
@@ -86,9 +100,15 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
 
-        String msisdn = "35847001001"; // TODO
-
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
+        if (msisdn == null) {
+            this.showEnterMsisdnDialog(req.getActivity(), future);
+            msisdn = future.get();
+        }
+
         request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
@@ -119,6 +139,36 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     @Override
     public ExternalSscdSettings getSettings() {
         return settings;
+    }
+
+    /**
+     * Show a dialog asking for the MSISDN
+     * @param activity Activity to inflate with the dialog
+     * @param future Future used to deliver the response
+     * @throws MusapException
+     */
+    public void showEnterMsisdnDialog(Activity activity, CompletableFuture<String> future) throws MusapException {
+        if (activity == null) {
+            throw new MusapException("Cannot show MSISDN dialog");
+        }
+        View view = LayoutInflater.from(activity).inflate(R.layout.dialog_msisdn, null);
+
+        activity.runOnUiThread(() -> {
+            AlertDialog dialog = new AlertDialog.Builder(activity)
+                    .setTitle("Enter your Phone Number")
+                    .setView(view)
+                    .setPositiveButton("OK", (dialogInterface, i) -> {
+                        String msisdn = ((TextView) view.findViewById(R.id.dialog_msisdn_edittext)).getText().toString();
+                        MLog.d("MSISDN=" + msisdn);
+                        future.complete(msisdn);
+                    })
+                    .setNeutralButton("Cancel", (dialogInterface, i) ->  {
+                        dialogInterface.cancel();
+                        future.completeExceptionally(new MusapException("User canceled"));
+                    })
+                    .create();
+            dialog.show();
+        });
     }
 
 }

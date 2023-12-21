@@ -1,10 +1,10 @@
-package fi.methics.musap.sdk.internal.datatype;
+package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import com.google.gson.annotations.SerializedName;
 
 import fi.methics.musap.sdk.internal.util.MLog;
 
-public class CouplingResponsePayload {
+public class LinkAccountResponsePayload extends ResponsePayload {
 
     @SerializedName("status")
     public String status;

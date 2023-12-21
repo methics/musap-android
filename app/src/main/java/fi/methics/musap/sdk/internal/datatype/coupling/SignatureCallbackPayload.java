@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype;
+package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import android.util.Base64;
 
@@ -7,6 +7,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.nio.charset.StandardCharsets;
 
+import fi.methics.musap.sdk.internal.datatype.MusapSignature;
+import fi.methics.musap.sdk.internal.datatype.PublicKey;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 public class SignatureCallbackPayload {

@@ -40,6 +40,8 @@ public class BindKeyTask extends MusapAsyncTask<MusapKey> {
 
             storage.addKey(key, activeSscd);
             return new AsyncTaskResult<>(key);
+        } catch (MusapException e) {
+            throw e;
         } catch (Exception e) {
             throw new MusapException(e);
         }

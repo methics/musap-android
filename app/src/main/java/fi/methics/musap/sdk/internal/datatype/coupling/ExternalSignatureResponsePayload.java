@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype;
+package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import android.util.Base64;
 
@@ -11,10 +11,7 @@ import java.util.Map;
 
 import fi.methics.musap.sdk.internal.util.MLog;
 
-public class ExternalSignatureResponsePayload {
-
-    @SerializedName("status")
-    public String status;
+public class ExternalSignatureResponsePayload extends ResponsePayload {
 
     @SerializedName("signature")
     public String signature;
@@ -24,6 +21,9 @@ public class ExternalSignatureResponsePayload {
 
     @SerializedName("certificate")
     public String certificate;
+
+    @SerializedName("transid")
+    public String transid;
 
     @SerializedName("attributes")
     public Map<String, String> attributes = new HashMap<>();

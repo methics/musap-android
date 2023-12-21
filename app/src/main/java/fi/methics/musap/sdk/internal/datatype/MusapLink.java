@@ -7,6 +7,16 @@ import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 
+import fi.methics.musap.sdk.api.MusapException;
+import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountResponsePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.EnrollDataPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.EnrollDataResponsePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.PollResponsePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.SignatureCallbackPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.SignaturePayload;
 import fi.methics.musap.sdk.internal.util.ByteaMarshaller;
 import fi.methics.musap.sdk.internal.util.MLog;
 import okhttp3.MediaType;
@@ -25,6 +35,7 @@ public class MusapLink {
     private static final String SIG_CALLBACK_MSG_TYPE = "signaturecallback";
     private static final String SIGN_MSG_TYPE         = "externalsignature";
 
+    private static final int POLL_AMOUNT = 20;
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -119,7 +130,7 @@ public class MusapLink {
      * @throws IOException
      */
     public RelyingParty couple(String couplingCode, String uuid) throws IOException {
-        CouplingPayload payload = new CouplingPayload(couplingCode, uuid);
+        LinkAccountPayload payload = new LinkAccountPayload(couplingCode, uuid);
 
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
@@ -149,7 +160,7 @@ public class MusapLink {
                 String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
                 MLog.d("Decoded=" + payloadJson);
 
-                CouplingResponsePayload resp = GSON.fromJson(payloadJson, CouplingResponsePayload.class);
+                LinkAccountResponsePayload resp = GSON.fromJson(payloadJson, LinkAccountResponsePayload.class);
                 MLog.d("Parsed payload");
                 if (resp.isSuccess()) {
                     return new RelyingParty(resp);
@@ -170,7 +181,7 @@ public class MusapLink {
      * @return SignaturePayload if poll returned data. Otherwise null.
      * @throws IOException
      */
-    public PollResp poll() throws IOException {
+    public PollResponsePayload poll() throws IOException {
         MusapMessage msg = new MusapMessage();
         msg.type = POLL_MSG_TYPE;
         msg.musapId = this.musapid;
@@ -202,7 +213,7 @@ public class MusapLink {
                 SignaturePayload payload = GSON.fromJson(payloadJson, SignaturePayload.class);
                 MLog.d("Parsed payload");
 
-                return new PollResp(payload, transId);
+                return new PollResponsePayload(payload, transId);
             } else {
                 MLog.d("Null response");
                 return null;
@@ -250,12 +261,13 @@ public class MusapLink {
     }
   
     /**
-     * Request external Signature with the "externalsignature" Coupling API
+     * Request external Signature with the "externalsignature" Coupling API call
      * @param payload External Signature request payload
      * @return External Signature response payload
-     * @throws IOException
+     * @throws IOException if request could not be sent
+     * @throws MusapException if signature failed
      */
-    public ExternalSignatureResponsePayload sign(ExternalSignaturePayload payload) throws IOException {
+    public ExternalSignatureResponsePayload sign(ExternalSignaturePayload payload) throws IOException, MusapException {
 
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
@@ -263,6 +275,32 @@ public class MusapLink {
         msg.musapId = getMusapId();
         MLog.d("Message=" + msg.toJson());
 
+        MusapMessage respMsg = sendRequest(msg);
+        if (respMsg == null || respMsg.payload == null) {
+            MLog.d("Null payload");
+            return null;
+        }
+        MLog.d("Response payload=" + respMsg.payload);
+        String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+        MLog.d("Decoded=" + payloadJson);
+
+        ExternalSignatureResponsePayload resp = GSON.fromJson(payloadJson, ExternalSignatureResponsePayload.class);
+        if ("pending".equals(resp.status)) {
+            return pollForSignature(resp.transid);
+        }
+        if ("failed".equals(resp.status)) {
+            throw new MusapException(resp.getErrorCode(), "Signature failed");
+        }
+        return resp;
+    }
+
+    /**
+     * Send a MUSAP Coupling API message
+     * @param msg Request
+     * @return Response or null if not available
+     * @throws IOException
+     */
+    private MusapMessage sendRequest(MusapMessage msg) throws IOException {
         RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
         Request request = new Request.Builder()
                 .url(this.url)
@@ -279,18 +317,57 @@ public class MusapLink {
                     MLog.d("Null payload");
                     return null;
                 }
-                MLog.d("Response payload=" + respMsg.payload);
-                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
-                MLog.d("Decoded=" + payloadJson);
-
-                ExternalSignatureResponsePayload resp = GSON.fromJson(payloadJson, ExternalSignatureResponsePayload.class);
-                MLog.d("Parsed payload");
-                return resp;
+                return respMsg;
             } else {
                 MLog.d("Null response");
                 return null;
             }
         }
+    }
+
+    /**
+     * Poll for a signature response
+     * @param transid       Transaction ID
+     * @return Signature response payload
+     * @throws IOException if request could not be sent
+     * @throws MusapException if signature failed
+     */
+    private ExternalSignatureResponsePayload pollForSignature(String transid) throws IOException, MusapException {
+        for (int i = 0; i < POLL_AMOUNT; i++) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                MLog.d("Poll interrupted");
+                continue;
+            }
+
+            ExternalSignaturePayload payload = new ExternalSignaturePayload();
+            payload.transid = transid;
+
+            MusapMessage msg = new MusapMessage();
+            msg.payload = payload.toBase64();
+            msg.type    = SIGN_MSG_TYPE;
+            msg.musapId = getMusapId();
+            MLog.d("Message=" + msg.toJson());
+
+            MusapMessage respMsg = sendRequest(msg);
+            if (respMsg == null || respMsg.payload == null) {
+                MLog.d("Null payload");
+                return null;
+            }
+            MLog.d("Response payload=" + respMsg.payload);
+            String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+            MLog.d("Decoded=" + payloadJson);
+            ExternalSignatureResponsePayload resp = GSON.fromJson(payloadJson, ExternalSignatureResponsePayload.class);
+            if ("pending".equals(resp.status)) {
+                continue;
+            }
+            if ("failed".equals(resp.status)) {
+                throw new MusapException(resp.getErrorCode(), "Signature failed");
+            }
+            return resp;
+        }
+        return null;
     }
 
 }

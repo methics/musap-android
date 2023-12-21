@@ -24,7 +24,7 @@ import fi.methics.musap.sdk.internal.async.CoupleTask;
 import fi.methics.musap.sdk.internal.async.PollTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
 import fi.methics.musap.sdk.internal.async.SignatureCallbackTask;
-import fi.methics.musap.sdk.internal.datatype.PollResp;
+import fi.methics.musap.sdk.internal.datatype.coupling.PollResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.discovery.MusapImportData;
@@ -316,7 +316,7 @@ public class MusapClient {
      * when a notification wakes up the application.
      * Calls the callback when when signature is received, or polling failed.
      */
-    public static void pollLink(String url, MusapCallback<PollResp> callback) {
+    public static void pollLink(String url, MusapCallback<PollResponsePayload> callback) {
         new PollTask(getMusapLink(), callback, context.get()).executeOnExecutor(executor);
     }
 

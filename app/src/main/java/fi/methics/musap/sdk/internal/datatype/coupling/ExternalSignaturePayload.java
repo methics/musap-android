@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype;
+package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import android.util.Base64;
 
@@ -34,11 +34,18 @@ public class ExternalSignaturePayload {
     @SerializedName("timeout")
     public String timeout;
 
+    @SerializedName("transid")
+    public String transid;
+
     @SerializedName("attributes")
     public Map<String, String> attributes = new HashMap<>();
 
     public ExternalSignaturePayload(String clientid) {
         this.clientid = clientid;
+    }
+
+    public ExternalSignaturePayload() {
+
     }
 
     /**
