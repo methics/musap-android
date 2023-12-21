@@ -1,10 +1,14 @@
 package fi.methics.musap.sdk.sscd.methicsdemo;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,6 +36,7 @@ import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.MBase64;
 import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musapsdk.R;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -63,27 +68,14 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
 
     @Override
     public MusapKey bindKey(KeyBindReq req) throws Exception {
-        CompletableFuture<DemoBindResult> future = new CompletableFuture<>();
+        CompletableFuture<String> future = new CompletableFuture<>();
 
         String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
-
         if (msisdn == null) {
-            openMsisdnPopup(req, future);
-        } else {
-            try {
-                MusapKey key = _bindKey(req, msisdn);
-                future.complete(new DemoBindResult(key));
-            } catch (MusapException e) {
-                MLog.e("Failed to bind key", e);
-                future.complete(new DemoBindResult(e));
-            }
+            this.showEnterMsisdnDialog(req.getActivity(), future);
+            msisdn = future.get();
         }
-
-        DemoBindResult result = future.get();
-        if (result.key       != null) return result.key;
-        if (result.exception != null) throw result.exception;
-
-        throw new MusapException("Bind failed");
+        return _bindKey(req, msisdn);
     }
 
     @Override
@@ -142,57 +134,44 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
         return settings;
     }
 
+
     /**
-     * Open MSISDN popup. Call BindKey when the user has entered MSISDN.
-     * @param req    Bind Request
-     * @param future Future to populate with the BindKey result
+     * Show a dialog asking for the MSISDN
+     * @param activity Activity to inflate with the dialog
+     * @param future Future used to deliver the response
+     * @throws MusapException
      */
-    private void openMsisdnPopup(KeyBindReq req, CompletableFuture<DemoBindResult> future) {
+    public void showEnterMsisdnDialog(Activity activity, CompletableFuture<String> future) throws MusapException {
+        if (activity == null) {
+            throw new MusapException("Cannot show MSISDN dialog");
+        }
+        View view = LayoutInflater.from(activity).inflate(R.layout.dialog_msisdn, null);
 
-        PopupWindow popupWindow = new PopupWindow(context);
-        TextView   popupContent = new TextView(context);
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        popupContent.setText("Please enter MSISDN");
-        popupContent.setBackgroundColor(Color.LTGRAY);
-        popupContent.setPadding(20, 20, 20, 20);
-
-        EditText msisdnEditText = new EditText(context);
-        msisdnEditText.setHint("Enter MSISDN");
-        msisdnEditText.setInputType(InputType.TYPE_CLASS_PHONE);
-
-        Button button = new Button(context);
-        button.setText("Bind Key");
-        button.setOnClickListener(v -> {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    MusapKey key = _bindKey(req, msisdnEditText.getText().toString());
-                    future.complete(new DemoBindResult(key));
-                } catch (MusapException e) {
-                    MLog.e("Failed to bind key", e);
-                    future.complete(new DemoBindResult(e));
-                }
-            });
-            popupWindow.dismiss();
+        activity.runOnUiThread(() -> {
+            AlertDialog dialog = new AlertDialog.Builder(activity)
+                    .setTitle("Enter your Phone Number")
+                    .setView(view)
+                    .setPositiveButton("OK", (dialogInterface, i) -> {
+                        String msisdn = ((TextView) view.findViewById(R.id.dialog_msisdn_edittext)).getText().toString();
+                        MLog.d("MSISDN=" + msisdn);
+                        future.complete(msisdn);
+                    })
+                    .setNeutralButton("Cancel", (dialogInterface, i) ->  {
+                        dialogInterface.cancel();
+                        future.completeExceptionally(new MusapException("User canceled"));
+                    })
+                    .create();
+            dialog.show();
         });
-
-        layout.addView(popupContent);
-        layout.addView(msisdnEditText);
-        layout.addView(button);
-
-        GradientDrawable backgroundDrawable = new GradientDrawable();
-        backgroundDrawable.setColor(Color.LTGRAY);
-        backgroundDrawable.setCornerRadius(16);
-
-        popupWindow.setBackgroundDrawable(backgroundDrawable);
-
-        popupWindow.setContentView(layout);
-        popupWindow.setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
-        popupWindow.setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
-        popupWindow.setFocusable(true);
-        req.getActivity().runOnUiThread(() -> popupWindow.showAtLocation(req.getView(), Gravity.CENTER, 0, 0));
     }
 
+    /**
+     * Internal BindKey operation.
+     * @param req    BindKey request
+     * @param msisdn MSISDN of the user
+     * @return Bound Key
+     * @throws MusapException if key binding fails for any reason
+     */
     private MusapKey _bindKey(KeyBindReq req, String msisdn) throws MusapException {
 
         MLog.d("Sending keygen request to Methics demo for MSISDN " + msisdn);
@@ -228,6 +207,8 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
                 builder.addAttribute(ATTRIBUTE_MSISDN, msisdn);
                 return builder.build();
             }
+        } catch (MusapException e) {
+            throw e;
         } catch (Exception e) {
             throw new MusapException(e);
         }
