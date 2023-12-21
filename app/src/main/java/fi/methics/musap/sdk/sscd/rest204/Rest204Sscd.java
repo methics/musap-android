@@ -1,15 +1,10 @@
 package fi.methics.musap.sdk.sscd.rest204;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.text.InputType;
-import android.view.Gravity;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -41,6 +36,7 @@ import fi.methics.musap.sdk.sscd.rest204.json.MSS_SignatureReq;
 import fi.methics.musap.sdk.sscd.rest204.json.MSS_SignatureResp;
 import fi.methics.musap.sdk.sscd.rest204.json.MSS_StatusReq;
 import fi.methics.musap.sdk.sscd.rest204.json.MSS_StatusResp;
+import fi.methics.musapsdk.R;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -75,14 +71,13 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
 
     @Override
     public MusapKey bindKey(KeyBindReq req) throws Exception {
-        CompletableFuture<RestBindResult> future = new CompletableFuture<>();
-        openKeygenPopup(req, future);
-
-        RestBindResult result = future.get();
-        if (result.key       != null) return result.key;
-        if (result.exception != null) throw result.exception;
-
-        throw new MusapException("Bind failed");
+        CompletableFuture<String> future = new CompletableFuture<>();
+        String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
+        if (msisdn == null) {
+            this.showEnterMsisdnDialog(req.getActivity(), future);
+            msisdn = future.get();
+        }
+        return _bindKey(req, msisdn);
     }
 
     @Override
@@ -185,53 +180,36 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
         return this.settings;
     }
 
-    private void openKeygenPopup(KeyBindReq req, CompletableFuture<RestBindResult> future) {
 
-        PopupWindow popupWindow = new PopupWindow(context);
-        TextView popupContent = new TextView(context);
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        popupContent.setText("Please enter MSISDN");
-        popupContent.setBackgroundColor(Color.LTGRAY);
-        popupContent.setPadding(20, 20, 20, 20);
+    /**
+     * Show a dialog asking for the MSISDN
+     * @param activity Activity to inflate with the dialog
+     * @param future Future used to deliver the response
+     * @throws MusapException
+     */
+    public void showEnterMsisdnDialog(Activity activity, CompletableFuture<String> future) throws MusapException {
+        if (activity == null) {
+            throw new MusapException("Cannot show MSISDN dialog");
+        }
+        View view = LayoutInflater.from(activity).inflate(R.layout.dialog_msisdn, null);
 
-        EditText msisdnEditText = new EditText(context);
-        msisdnEditText.setHint("Enter MSISDN");
-        msisdnEditText.setInputType(InputType.TYPE_CLASS_PHONE);
-
-        Button button = new Button(context);
-        button.setText("Bind Key");
-        button.setOnClickListener(v -> {
-            MLog.d("Bind Key pressed");
-            CompletableFuture.runAsync(() -> {
-                try {
-                    MusapKey key = _bindKey(req, msisdnEditText.getText().toString());
-                    future.complete(new RestBindResult(key));
-                } catch (MusapException e) {
-                    MLog.e("Failed to bind key", e);
-                    future.complete(new RestBindResult(e));
-                }
-            });
-            popupWindow.dismiss();
+        activity.runOnUiThread(() -> {
+            AlertDialog dialog = new AlertDialog.Builder(activity)
+                    .setTitle("Enter your Phone Number")
+                    .setView(view)
+                    .setPositiveButton("OK", (dialogInterface, i) -> {
+                        String msisdn = ((TextView) view.findViewById(R.id.dialog_msisdn_edittext)).getText().toString();
+                        MLog.d("MSISDN=" + msisdn);
+                        future.complete(msisdn);
+                    })
+                    .setNeutralButton("Cancel", (dialogInterface, i) ->  {
+                        dialogInterface.cancel();
+                        future.completeExceptionally(new MusapException("User canceled"));
+                    })
+                    .create();
+            dialog.show();
         });
-
-        layout.addView(popupContent);
-        layout.addView(msisdnEditText);
-        layout.addView(button);
-
-        GradientDrawable backgroundDrawable = new GradientDrawable();
-        backgroundDrawable.setColor(Color.LTGRAY);
-        backgroundDrawable.setCornerRadius(16);
-
-        popupWindow.setBackgroundDrawable(backgroundDrawable);
-
-        popupWindow.setContentView(layout);
-        popupWindow.setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
-        popupWindow.setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
-        popupWindow.setFocusable(true);
-        req.getActivity().runOnUiThread(() -> popupWindow.showAtLocation(req.getView(), Gravity.CENTER, 0, 0));
     }
-
 
     private MusapKey _bindKey(KeyBindReq req, String msisdn) throws MusapException {
 
@@ -301,9 +279,9 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
                 builder.setKeyId(IdGenerator.generateKeyId());
                 return builder.build();
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             MLog.d("Failed to bind MSISDN " + msisdn + ": " + e.getMessage());
-            throw new MusapException(new Exception(e));
+            throw new MusapException(e);
         }
     }
 
@@ -373,7 +351,8 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
     }
 
     private MusapException handleError(String statusCode) {
-        switch (statusCode) {
+        if (statusCode == null) return new MusapException(MusapException.ERROR_INTERNAL, "Failed with status " + statusCode);
+        switch (statusCode.replace("_", "")) {
             case "105": return new MusapException(MusapException.ERROR_UNKNOWN_KEY, "No such user");
             case "208": return new MusapException(MusapException.ERROR_TIMED_OUT,   "Timed out");
             case "401": return new MusapException(MusapException.ERROR_USER_CANCEL, "User cancelled");

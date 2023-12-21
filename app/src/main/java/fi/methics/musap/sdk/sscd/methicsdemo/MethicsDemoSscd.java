@@ -125,7 +125,6 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
         return settings;
     }
 
-
     /**
      * Show a dialog asking for the MSISDN
      * @param activity Activity to inflate with the dialog
