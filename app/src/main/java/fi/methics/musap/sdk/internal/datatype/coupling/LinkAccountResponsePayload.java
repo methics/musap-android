@@ -6,9 +6,6 @@ import fi.methics.musap.sdk.internal.util.MLog;
 
 public class LinkAccountResponsePayload extends ResponsePayload {
 
-    @SerializedName("status")
-    public String status;
-
     @SerializedName("linkid")
     public String linkid;
 

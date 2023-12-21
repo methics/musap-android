@@ -10,7 +10,6 @@ import java.lang.ref.WeakReference;
 import java.security.Security;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -249,21 +248,6 @@ public class MusapClient {
         // TODO
     }
 
-    /**
-     * Enable a MUSAP Link connection.
-     * Enabling allows the MUSAP Link to securely request signatures from this MUSAP.
-     * @param url URL of the MUSAP link service
-     */
-    public static void enableLink(String url) {
-        enrollDataWithLink(url, null);
-    }
-
-    /**
-     * Disable MUSAP link connection
-     */
-    public static void disableLink() {
-        // TODO
-    }
 
     /**
      * List enrolled Relying Parties
@@ -282,18 +266,42 @@ public class MusapClient {
         return new MusapStorage(context.get()).removeRelyingParty(rp);
     }
 
-    public static void enrollDataWithLink(String url, MusapCallback<MusapLink> callback) {
-        String fcmToken = UUID.randomUUID().toString();
+    /**
+     * Enable a MUSAP Link connection.
+     * Enabling allows the MUSAP Link to securely request signatures from this MUSAP.
+     *
+     * <p><b>Note: Only one connection can be active at a time.</b></p>
+     * @param url URL of the MUSAP link service
+     */
+    public static void enableLink(String url, String fcmToken, MusapCallback<MusapLink> callback) {
         MusapLink link = new MusapLink(url, null);
         new EnrollDataTask(link, fcmToken, callback, context.get()).executeOnExecutor(executor);
     }
 
-    public static void coupleWithLink(String url, String couplingCode, MusapCallback<RelyingParty> callback) {
+    /**
+     * Disable the MUSAP Link connection
+     */
+    public static void disableLink() {
+        new MusapStorage(context.get()).removeLink();
+    }
+
+    /**
+     * Request coupling with an RP.
+     * This requires a coupling code which can be retrieved by the web service via the MUSAP Link API.
+     * @param couplingCode Coupling code entered by the user.
+     * @param callback     Callback that delivers a RelyingParty object if the linking succeeded
+     */
+    public static void coupleWithRelyingParty(String couplingCode, MusapCallback<RelyingParty> callback) {
         String musapId = getMusapId();
-        MusapLink link = new MusapLink(url, musapId);
+        MusapLink link = getMusapLink();
         new CoupleTask(link, couplingCode, musapId, callback, context.get()).executeOnExecutor(executor);
     }
 
+    /**
+     * Send a SignatureCallback to MUSAP Link
+     * @param signature Signature Callback
+     * @param txnId     Transaction ID
+     */
     public static void sendSignatureCallback(MusapSignature signature, String txnId) {
         MusapLink link = getMusapLink();
         if (link != null) {

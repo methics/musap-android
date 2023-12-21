@@ -73,6 +73,13 @@ public class MusapStorage {
     }
 
     /**
+     * Remove MUSAP Link
+     */
+    public void removeLink() {
+        this.storePrefValue(MUSAP_ID_PREF, null);
+    }
+
+    /**
      * List Relying Parties
      * @return RP list
      */
