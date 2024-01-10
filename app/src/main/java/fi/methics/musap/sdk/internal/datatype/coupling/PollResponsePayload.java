@@ -27,6 +27,22 @@ public class PollResponsePayload extends ResponsePayload {
         return signaturePayload.mode;
     }
 
+    /**
+     * Does this request ask for new key generation?
+     * @return true if new key generation is wanted
+     */
+    public boolean shouldGenerateKey() {
+        return !MODE_SIGN.equals(this.getMode());
+    }
+
+    /**
+     * Does this request ask for a signature?
+     * @return true if signature is asked
+     */
+    public boolean shouldSign() {
+        return !MODE_GENONLY.equals(this.getMode());
+    }
+
     public PollResponsePayload(SignaturePayload signaturePayload, String transId) {
         this.signaturePayload = signaturePayload;
         this.transId = transId;
