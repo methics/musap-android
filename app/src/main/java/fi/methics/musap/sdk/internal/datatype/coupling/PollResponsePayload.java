@@ -8,6 +8,10 @@ import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 
 public class PollResponsePayload extends ResponsePayload {
 
+    public static final String MODE_SIGN = "sign";
+    public static final String MODE_GENSIGN = "generate-sign";
+    public static final String MODE_GENONLY = "generate-only";
+
     @SerializedName("signaturepayload")
     private final SignaturePayload signaturePayload;
 

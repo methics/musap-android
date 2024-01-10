@@ -16,10 +16,6 @@ import fi.methics.musap.sdk.internal.sign.SignatureReq;
 
 public class SignaturePayload {
 
-    public static final String MODE_SIGN = "sign";
-    public static final String MODE_GENSIGN = "generate-sign";
-    public static final String MODE_GENONLY = "generate-only";
-
     @SerializedName("mode")
     public String mode;
 
