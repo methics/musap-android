@@ -63,6 +63,18 @@ public class KeyGenReq {
         return this.keyUsage;
     }
 
+    public void setActivity(Activity activity) {
+        this.activity = activity;
+    }
+
+    public void setView(View view) {
+        this.view = view;
+    }
+
+    public void setKeyAlgorithm(KeyAlgorithm algorithm) {
+        this.keyAlgorithm = algorithm;
+    }
+
     public static class Builder {
         private String keyAlias;
         private String did;
