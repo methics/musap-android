@@ -10,6 +10,14 @@ public class KeyAlgorithm {
     public static final String PRIMITIVE_RSA = "RSA";
     public static final String PRIMITIVE_EC  = "EC";
 
+    public static final String ALG_STR_RSA_2K      = "RSA2K";
+    public static final String ALG_STR_RSA_4K      = "RSA4K";
+    public static final String ALG_STR_ECC_P256_K1 = "ECCP256K1";
+    public static final String ALG_STR_ECC_P256_R1 = "ECCP256R1";
+    public static final String ALG_STR_ECC_P384_K1 = "ECCP384K1";
+    public static final String ALG_STR_ECC_P384_R1 = "ECCP384R1";
+    public static final String ALG_STR_ECC_ED25519 = "ECC_ED25519";
+
     public static final String CURVE_SECP256K1 = "secp256k1";
     public static final String CURVE_SECP384K1 = "secp384k1";
     public static final String CURVE_SECP256R1 = "secp256r1";
@@ -48,6 +56,26 @@ public class KeyAlgorithm {
         this.primitive  = primitive;
         this.curve      = curve;
         this.bits       = bits;
+    }
+
+    /**
+     * Parse a supported String to a KeyAlgorithm.
+     * See the MUSAP spec for a list of supported Strings.
+     * @param algo KeyAlgorithm String
+     * @return KeyAlgorithm, or null if not supported
+     */
+    public static KeyAlgorithm fromString(String algo) {
+        if (algo == null) return null;
+        switch (algo.toUpperCase()) {
+            case ALG_STR_RSA_2K: return RSA_2K;
+            case ALG_STR_RSA_4K: return RSA_4K;
+            case ALG_STR_ECC_P256_K1: return ECC_P256_K1;
+            case ALG_STR_ECC_P256_R1: return ECC_P256_R1;
+            case ALG_STR_ECC_P384_K1: return ECC_P384_K1;
+            case ALG_STR_ECC_P384_R1: return ECC_P384_R1;
+            case ALG_STR_ECC_ED25519: return ECC_ED25519;
+        }
+        return null;
     }
 
     /**

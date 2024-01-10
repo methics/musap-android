@@ -11,9 +11,17 @@ import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.SignatureAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.SignatureAttribute;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
+import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 
 public class SignaturePayload {
+
+    public static final String MODE_SIGN = "sign";
+    public static final String MODE_GENSIGN = "generate-sign";
+    public static final String MODE_GENONLY = "generate-only";
+
+    @SerializedName("mode")
+    public String mode;
 
     @SerializedName("data")
     public String data;
@@ -44,15 +52,20 @@ public class SignaturePayload {
 
     public static class KeyIdentifier {
 
-        // Key identified by one of:
         @SerializedName("keyid")
         public String keyid;
 
-        @SerializedName("keyalias")
-        public String keyalias;
+        @SerializedName("keyname")
+        public String keyname;
+
+        @SerializedName("keyusage")
+        public String keyusage;
 
         @SerializedName("publickeyhash")
         public String publickeyhash;
+
+        @SerializedName("algorithm")
+        public String algorithm;
 
     }
 
@@ -79,6 +92,19 @@ public class SignaturePayload {
                 .setDisplayText(this.display)
                 .setAttributes(this.attributes)
                 .createSignatureReq();
+    }
+
+    /**
+     * Create a new {@link KeyGenReq} from this MUSAP Link payload
+     * @return {@link KeyGenReq}
+     */
+    public KeyGenReq toKeygenReq() {
+        return new KeyGenReq.Builder()
+                .setKeyAlgorithm(KeyAlgorithm.fromString(this.key.algorithm))
+                .setKeyUsage(this.key.keyusage)
+                // RP set name is used here since user is not asked for the name
+                .setKeyAlias(this.key.keyname)
+                .createKeyGenReq();
     }
 
 }
