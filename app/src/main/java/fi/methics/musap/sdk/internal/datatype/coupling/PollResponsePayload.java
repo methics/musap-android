@@ -48,6 +48,14 @@ public class PollResponsePayload extends ResponsePayload {
         this.transId = transId;
     }
 
+    /**
+     * Get the poll response transaction id
+     * @return transaction id
+     */
+    public String getTransId() {
+        return this.transId;
+    }
+
     public SignatureReq toSignatureReq(MusapKey key) {
         SignatureReq req = this.signaturePayload.toSignatureReq(key);
         req.setTransId(this.transId);
