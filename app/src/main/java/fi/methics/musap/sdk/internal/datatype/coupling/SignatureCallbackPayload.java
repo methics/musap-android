@@ -7,6 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.nio.charset.StandardCharsets;
 
+import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.datatype.PublicKey;
 import fi.methics.musap.sdk.internal.util.MLog;
@@ -14,20 +15,45 @@ import fi.methics.musap.sdk.internal.util.MLog;
 public class SignatureCallbackPayload {
 
     @SerializedName("linkid")
-    public final String linkid;
-    @SerializedName("publickey")
-    public final String publickey;
+    public String linkid;
+
     @SerializedName("signature")
-    public final String signature;
+    public String signature;
+
+    @SerializedName("publickey")
+    public String publickey;
+
+    @SerializedName("keyuri")
+    public String keyuri;
+
+    @SerializedName("keyid")
+    public String keyid;
+
+    public SignatureCallbackPayload(String linkid, MusapKey key) {
+        this.linkid = linkid;
+        if (key != null) {
+            this.keyid = key.getKeyId();
+            this.keyuri = key.getKeyUri().toString();
+            PublicKey publickey = key.getPublicKey();
+            if (publickey != null) {
+                this.publickey = publickey.getPEM();
+            }
+        }
+    }
 
     public SignatureCallbackPayload(String linkid, MusapSignature signature) {
-        this.linkid    = linkid;
-        this.signature = signature != null ? signature.getB64Signature() : null;
-        PublicKey publickey = signature.getPublicKey();
-        if (publickey != null) {
-            this.publickey = publickey.getPEM();
-        } else {
-            this.publickey = null;
+        this.linkid = linkid;
+        if (signature != null) {
+            this.signature = signature.getB64Signature();
+            PublicKey publickey = signature.getPublicKey();
+            if (publickey != null) {
+                this.publickey = publickey.getPEM();
+            }
+            MusapKey key = signature.getKey();
+            if (key != null) {
+                this.keyid = key.getKeyId();
+                this.keyuri = key.getKeyUri().toString();
+            }
         }
     }
 
