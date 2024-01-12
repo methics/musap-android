@@ -13,7 +13,7 @@ public class SscdSearchReq {
     private String provider;
     private KeyAlgorithm algorithm;
 
-    public SscdSearchReq(Builder builder) {
+    private SscdSearchReq(Builder builder) {
         this.sscdType     = builder.sscdType;
         this.country      = builder.country;
         this.provider     = builder.provider;
@@ -49,7 +49,7 @@ public class SscdSearchReq {
         return true;
     }
 
-    public class Builder {
+    public static class Builder {
         private String sscdType;
         private String country;
         private String provider;
