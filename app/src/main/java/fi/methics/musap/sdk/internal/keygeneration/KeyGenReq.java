@@ -16,6 +16,7 @@ public class KeyGenReq {
     private String keyAlias;
     private String did;
     private String role;
+    private String keyUsage;
     private StepUpPolicy stepUpPolicy;
     private List<KeyAttribute> attributes;
     protected KeyAlgorithm keyAlgorithm;
@@ -58,11 +59,27 @@ public class KeyGenReq {
         return attributes;
     }
 
+    public String getKeyUsage() {
+        return this.keyUsage;
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
+    }
+
+    public void setView(View view) {
+        this.view = view;
+    }
+
+    public void setKeyAlgorithm(KeyAlgorithm algorithm) {
+        this.keyAlgorithm = algorithm;
+    }
 
     public static class Builder {
         private String keyAlias;
         private String did;
         private String role;
+        private String keyUsage;
         private StepUpPolicy stepUpPolicy;
         private List<KeyAttribute> attributes = new ArrayList<>();
         private KeyAlgorithm keyAlgorithm;
@@ -81,6 +98,11 @@ public class KeyGenReq {
 
         public Builder setRole(String role) {
             this.role = role;
+            return this;
+        }
+
+        public Builder setKeyUsage(String keyUsage) {
+            this.keyUsage = keyUsage;
             return this;
         }
 
@@ -117,6 +139,7 @@ public class KeyGenReq {
         public KeyGenReq createKeyGenReq() {
             KeyGenReq req = new KeyGenReq();
             req.keyAlias     = keyAlias;
+            req.keyUsage     = keyUsage;
             req.did          = did;
             req.attributes   = attributes;
             req.stepUpPolicy = stepUpPolicy;

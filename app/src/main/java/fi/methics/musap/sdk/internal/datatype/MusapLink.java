@@ -33,6 +33,7 @@ public class MusapLink {
     private static final String ENROLL_MSG_TYPE       = "enrolldata";
     private static final String POLL_MSG_TYPE         = "getdata";
     private static final String SIG_CALLBACK_MSG_TYPE = "signaturecallback";
+    private static final String KEY_CALLBACK_MSG_TYPE = "generatekeycallback";
     private static final String SIGN_MSG_TYPE         = "externalsignature";
 
     private static final int POLL_AMOUNT = 20;
@@ -222,11 +223,49 @@ public class MusapLink {
     }
 
     /**
+     * Send a key generation callback to MUSAP Link.
+     * This performs networking operations.
+     *
+     * @param key MusapKey
+     * @param transId transaction id
+     * @throws IOException
+     */
+    public void sendKeygenCallback(MusapKey key, String transId) throws IOException {
+        SignatureCallbackPayload payload = new SignatureCallbackPayload(null, key);
+
+        MusapMessage msg = new MusapMessage();
+        msg.type = KEY_CALLBACK_MSG_TYPE;
+        msg.payload = payload.toBase64();
+        msg.musapId = this.musapid;
+        msg.transid = transId;
+        MLog.d("Message=" + msg.toJson());
+        MLog.d("Url=" + this.url);
+
+        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
+        Request request = new Request.Builder()
+                .url(this.url)
+                .post(body)
+                .build();
+        OkHttpClient client = new OkHttpClient.Builder().build();
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() != null) {
+                String sResp = response.body().string();
+                MLog.d("Got response " + sResp);
+                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+
+                if (respMsg == null || respMsg.payload == null) {
+                    MLog.d("Null payload");
+                }
+            }
+        }
+    }
+
+    /**
      * Send a signature callback to MUSAP Link.
      * This performs networking operations.
      *
      * @param signature MusapSignature
-     * @param transId
+     * @param transId transaction id
      * @throws IOException
      */
     public void sendSignatureCallback(MusapSignature signature, String transId) throws IOException {

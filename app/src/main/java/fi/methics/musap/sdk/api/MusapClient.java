@@ -20,6 +20,7 @@ import fi.methics.musap.sdk.internal.async.BindKeyTask;
 import fi.methics.musap.sdk.internal.async.EnrollDataTask;
 import fi.methics.musap.sdk.internal.async.GenerateKeyTask;
 import fi.methics.musap.sdk.internal.async.CoupleTask;
+import fi.methics.musap.sdk.internal.async.KeyGenCallbackTask;
 import fi.methics.musap.sdk.internal.async.PollTask;
 import fi.methics.musap.sdk.internal.async.SignTask;
 import fi.methics.musap.sdk.internal.async.SignatureCallbackTask;
@@ -299,7 +300,7 @@ public class MusapClient {
 
     /**
      * Send a SignatureCallback to MUSAP Link
-     * @param signature Signature Callback
+     * @param signature Signature
      * @param txnId     Transaction ID
      */
     public static void sendSignatureCallback(MusapSignature signature, String txnId) {
@@ -311,6 +312,19 @@ public class MusapClient {
         }
     }
 
+    /**
+     * Send a GenerateKeyCallback to MUSAP Link
+     * @param key   Key
+     * @param txnId Transaction ID
+     */
+    public static void sendKeygenCallback(MusapKey key, String txnId) {
+        MusapLink link = getMusapLink();
+        if (link != null) {
+            String musapId = getMusapId();
+            link.setMusapId(musapId);
+            new KeyGenCallbackTask(link, key, txnId,null, context.get()).executeOnExecutor(executor);
+        }
+    }
     /**
      * Check if MUSAP Link has been enabled
      * @return true if enabled
