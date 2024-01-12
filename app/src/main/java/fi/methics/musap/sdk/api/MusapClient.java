@@ -273,9 +273,20 @@ public class MusapClient {
      *
      * <p><b>Note: Only one connection can be active at a time.</b></p>
      * @param url URL of the MUSAP link service
+     * @param callback Response callback
      */
     public static void enableLink(String url, String fcmToken, MusapCallback<MusapLink> callback) {
         MusapLink link = new MusapLink(url, null);
+        new EnrollDataTask(link, fcmToken, callback, context.get()).executeOnExecutor(executor);
+    }
+
+    /**
+     * Send an updated FCM token to the MUSAP Link. If MUSAP Link is not enabled, this does nothing.
+     * @param callback Response callback
+     */
+    public static void updateFcmToken(String fcmToken, MusapCallback<MusapLink> callback) {
+        MusapLink link = getMusapLink();
+        if (link == null) return;
         new EnrollDataTask(link, fcmToken, callback, context.get()).executeOnExecutor(executor);
     }
 

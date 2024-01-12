@@ -17,6 +17,8 @@ import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponse
 import fi.methics.musap.sdk.internal.datatype.coupling.PollResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.SignatureCallbackPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.SignaturePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataResponsePayload;
 import fi.methics.musap.sdk.internal.util.ByteaMarshaller;
 import fi.methics.musap.sdk.internal.util.MLog;
 import okhttp3.MediaType;
@@ -31,6 +33,7 @@ public class MusapLink {
 
     private static final String COUPLE_MSG_TYPE       = "linkaccount";
     private static final String ENROLL_MSG_TYPE       = "enrolldata";
+    private static final String UPDATE_MSG_TYPE       = "updatedata";
     private static final String POLL_MSG_TYPE         = "getdata";
     private static final String SIG_CALLBACK_MSG_TYPE = "signaturecallback";
     private static final String KEY_CALLBACK_MSG_TYPE = "generatekeycallback";
@@ -117,6 +120,45 @@ public class MusapLink {
 
                 this.musapid = respPayload.getMusapId();
                 return this;
+            } else {
+                MLog.d("Null response");
+                throw new IOException("EnrollData failed. Got empty response.");
+            }
+        }
+    }
+
+    /**
+     * Update FCM token in MUSAP Link.
+     * @param fcmToken
+     * @return true if update was accepted by MUSAP Link
+     * @throws IOException
+     */
+    public boolean updateFcmToken(String fcmToken) throws IOException {
+        UpdateDataPayload payload = new UpdateDataPayload(fcmToken);
+
+        MusapMessage msg = new MusapMessage();
+        msg.payload = payload.toBase64();
+        msg.type = UPDATE_MSG_TYPE;
+        MLog.d("Message=" + msg.toJson());
+        MLog.d("Url=" + this.url);
+
+        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
+        Request request = new Request.Builder()
+                .url(this.url)
+                .post(body)
+                .build();
+        OkHttpClient client = new OkHttpClient.Builder().build();
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() != null) {
+                String sResp = response.body().string();
+                MLog.d("Got response " + sResp);
+
+                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+                MLog.d("Response payload=" + respMsg.payload);
+                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+                MLog.d("Decoded=" + payloadJson);
+                UpdateDataResponsePayload respPayload = GSON.fromJson(payloadJson, UpdateDataResponsePayload.class);
+                return respPayload.isSuccess();
             } else {
                 MLog.d("Null response");
                 throw new IOException("EnrollData failed. Got empty response.");
