@@ -95,12 +95,14 @@ public class SignaturePayload {
      * @return {@link KeyGenReq}
      */
     public KeyGenReq toKeygenReq() {
-        return new KeyGenReq.Builder()
-                .setKeyAlgorithm(KeyAlgorithm.fromString(this.key.algorithm))
-                .setKeyUsage(this.key.keyusage)
-                // RP set name is used here since user is not asked for the name
-                .setKeyAlias(this.key.keyname)
-                .createKeyGenReq();
+        KeyGenReq.Builder builder = new KeyGenReq.Builder();
+        if (this.key != null) {
+            builder.setKeyAlgorithm(KeyAlgorithm.fromString(this.key.algorithm));
+            builder.setKeyUsage(this.key.keyusage);
+            // RP set name is used here since user is not asked for the name
+            builder.setKeyAlias(this.key.keyname);
+        }
+        return builder.createKeyGenReq();
     }
 
 }
