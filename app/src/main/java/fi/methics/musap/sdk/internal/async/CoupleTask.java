@@ -35,6 +35,10 @@ public class CoupleTask extends MusapAsyncTask<RelyingParty> {
         try {
             // TODO: Add proper error handling
             RelyingParty rp = link.couple(this.couplingCode, this.appId);
+            if (rp == null) {
+                throw new MusapException("Wrong coupling code");
+            }
+
             new MusapStorage(this.context.get()).storeRelyingParty(rp);
             return new AsyncTaskResult<>(rp);
         } catch (Exception e) {
