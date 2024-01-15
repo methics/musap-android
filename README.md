@@ -1,6 +1,37 @@
 # MUSAP Android Library
 
-## Enabling an SSCD
+MUSAP (Multiple SSCDs with Unified Signature API) is an Android library designed to simplify the integration of multiple Secure Signature Creation Devices (SSCD) with a unified signature API. 
+It provides a set of tools and utilities to streamline the implementation of secure signature creation mechanisms in Android applications.
+
+## Features
+* **Multiple SSCD Integration**: MUSAP simplifies the integration of multiple Secure Signature Creation Devices into your Android application.
+* **Unified Signature API**: Utilize a unified API for signature operations, abstracting the complexities of individual SSCD implementations.
+* **Secure Signature Creation**: Implement secure and standardized methods for creating digital signatures within your application.
+* **Customizable**: MUSAP is designed with flexibility in mind, allowing developers to customize and extend its functionality according to specific project requirements.
+
+## Installing
+
+To integrate MUSAP into your Android project, follow these steps:
+
+1. Add the following dependency to your app's build.gradle file:
+
+```gradle
+    implementation (files("libs/musap-[version].aar"))
+```
+
+2. Add the following dependencies required by the MUSAP library:
+```gradle
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("com.google.code.gson:gson:2.8.8")
+    implementation ("org.slf4j:slf4j-api:2.0.7")
+    implementation("org.bouncycastle:bcpkix-jdk15to18:1.71")
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
+```
+
+## Usage
+
+### Enabling an SSCD
 
 Call `MusapClient.init()` and `MusapClient.enableSscd()`
 
@@ -18,7 +49,7 @@ public class MyApplication extends Application {
 
 ```
 
-## Generating a key
+### Generating a key
 
 Create a key generation request and call `MusapClient.generateKey()`. The key generation result is delivered asynchronously through the given callback.
 
@@ -44,7 +75,7 @@ MusapClient.generateKey(sscd, req, new MusapCallback<MusapKey>() {
 
 ```
 
-## Signing
+### Signing
 
 Select a key, create a signature request and a `MusapSigner`. Finally call `MusapSigner.sign()`. The signature result is delivered asynchronously through the given callback.
 
@@ -71,4 +102,10 @@ try {
 }
 
 ```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE.md) file for details.
+
+### Apache License 2.0
 
