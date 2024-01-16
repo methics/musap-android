@@ -212,9 +212,14 @@ public class MusapKey {
                 MLog.d("SSCD " + sscd.getSscdInfo().getSscdType() + " does not match " + this.sscdType);
             }
         }
+        MLog.d("Could not find SSCD implementation for key " + this.keyId);
         return null;
     }
 
+    /**
+     * Get details of the SSCD that created this SSCD
+     * @return SSCD
+     */
     public MusapSscd getSscdInfo() {
         if (this.sscdId == null) {
             MLog.d("No SSCD ID found");
