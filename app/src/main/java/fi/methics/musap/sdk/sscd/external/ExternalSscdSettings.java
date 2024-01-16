@@ -13,6 +13,7 @@ public class ExternalSscdSettings implements SscdSettings {
     public static final String SETTINGS_TIMEOUT    = "timeout";
     public static final String SETTINGS_CLIENT_ID  = "clientid";
     public static final String SETTINGS_SSCD_NAME  = "sscdname";
+    public static final String SETTINGS_PROVIDER   = "provider";
 
     private Map<String, String> settings = new HashMap<>();
     private Duration timeout;
@@ -32,8 +33,14 @@ public class ExternalSscdSettings implements SscdSettings {
         return settings;
     }
 
-    public void setSscdName(String name) {
+    public ExternalSscdSettings setSscdName(String name) {
         this.setSetting(SETTINGS_SSCD_NAME, name);
+        return this;
+    }
+
+    public ExternalSscdSettings setProvider(String provider) {
+        this.setSetting(SETTINGS_PROVIDER, provider);
+        return this;
     }
 
     public String getClientId() {
@@ -43,6 +50,10 @@ public class ExternalSscdSettings implements SscdSettings {
     public Duration getTimeout() {
         if (this.timeout == null) return Duration.ofMinutes(2);
         return this.timeout;
+    }
+
+    public String getProvider() {
+        return this.getSetting(SETTINGS_PROVIDER);
     }
 
     public String getSscdName() {
