@@ -126,6 +126,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
                 .setSscdName(this.settings.getSscdName())
                 .setSscdType(SSCD_TYPE)
                 .setKeygenSupported(false)
+                .setProvider(this.settings.getProvider())
                 .setSupportedAlgorithms(Arrays.asList(KeyAlgorithm.RSA_2K))
                 .setSupportedFormats(Arrays.asList(SignatureFormat.RAW, SignatureFormat.CMS))
                 .build();
