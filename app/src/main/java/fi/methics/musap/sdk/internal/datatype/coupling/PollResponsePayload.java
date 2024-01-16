@@ -28,6 +28,23 @@ public class PollResponsePayload extends ResponsePayload {
     }
 
     /**
+     * Get the text to display to the user
+     * @return Text to display
+     */
+    public String getDisplayText() {
+        if (signaturePayload == null) return null;
+        return signaturePayload.display;
+    }
+
+    /**
+     * Get the raw Coupling API SignaturePayload
+     * @return Raw SignaturePayload
+     */
+    public SignaturePayload getSignaturePayload() {
+        return signaturePayload;
+    }
+
+    /**
      * Does this request ask for new key generation?
      * @return true if new key generation is wanted
      */
