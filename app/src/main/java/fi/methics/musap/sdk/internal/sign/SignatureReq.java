@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
@@ -167,6 +168,18 @@ public class SignatureReq {
 
         public Builder setFormat(SignatureFormat format) {
             this.format = format;
+            return this;
+        }
+
+        public Builder addAttribute(String name, String value) {
+            return this.addAttribute(new SignatureAttribute(name, value));
+        }
+
+        public Builder addAttribute(SignatureAttribute attribute) {
+            if (this.attributes == null) {
+                this.attributes = new ArrayList<>();
+            }
+            this.attributes.add(attribute);
             return this;
         }
 
