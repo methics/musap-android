@@ -42,8 +42,6 @@ public class SignatureReq {
     @SerializedName("attributes")
     protected List<SignatureAttribute> attributes;
 
-
-
     protected String transId;
 
     protected transient Activity activity;
@@ -57,18 +55,36 @@ public class SignatureReq {
         this.attributes  = builder.attributes;
     }
 
+    /**
+     * Set the activity related to this request. This may be relevant in cases
+     * where the SSCD requires to display UI elements.
+     * @param activity Activity
+     */
     public void setActivity(Activity activity) {
         this.activity = activity;
     }
 
+    /**
+     * Overwrite all request attributes with given list
+     * @param attributes Attribute list
+     */
     public void setAttributes(List<SignatureAttribute> attributes) {
         this.attributes = attributes;
     }
 
+    /**
+     * Add a single attribute to the request
+     * @param name  Name of the attribute
+     * @param value Value
+     */
     public void addAttribute(String name, String value) {
         this.addAttribute(new SignatureAttribute(name, value));
     }
 
+    /**
+     * Add a single attribute to the request
+     * @param attribute Attribute to add
+     */
     public void addAttribute(SignatureAttribute attribute) {
         if (this.attributes == null) {
             this.attributes = new ArrayList<>();
@@ -76,6 +92,10 @@ public class SignatureReq {
         this.attributes.add(attribute);
     }
 
+    /**
+     * Set the transaction ID of the request
+     * @param transId transid
+     */
     public void setTransId(String transId) {
         this.transId = transId;
     }
@@ -88,6 +108,10 @@ public class SignatureReq {
         return key;
     }
 
+    /**
+     * Get the transaction ID of the request
+     * @return Transaction ID
+     */
     public String getTransId() {
         return transId;
     }
