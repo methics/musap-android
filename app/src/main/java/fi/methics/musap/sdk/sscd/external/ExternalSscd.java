@@ -134,7 +134,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
     @Override
     public String generateSscdId(MusapKey key) {
-        return SSCD_TYPE + "/" + key.getAttributeValue(ATTRIBUTE_MSISDN);
+        return SSCD_TYPE + "/" + this.clientid + "/" + key.getAttributeValue(ATTRIBUTE_MSISDN);
     }
 
     @Override
