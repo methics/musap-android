@@ -194,9 +194,15 @@ public class MusapKey {
         }
         MLog.d("Looking for an SSCD with type " + this.sscdType);
         for (MusapSscdInterface sscd : MusapClient.listEnabledSscds()) {
-            if (this.sscdType.equals(sscd.getSscdInfo().getSscdType())) {
-                MLog.d("Found SSCD with type " + this.sscdType);
-                return sscd;
+            MusapSscd sscdInfo = sscd.getSscdInfo();
+            if (this.sscdType.equals(sscdInfo.getSscdType())) {
+                if (this.sscdId == null) {
+                    MLog.d("Found SSCD with type " + this.sscdType);
+                    return sscd;
+                } else if (this.sscdId.equals(sscdInfo.getSscdId())) {
+                    MLog.d("Found SSCD with type " + this.sscdType + " and id " + this.sscdId);
+                    return sscd;
+                }
             } else {
                 MLog.d("SSCD " + sscd.getSscdInfo().getSscdType() + " does not match " + this.sscdType);
             }
