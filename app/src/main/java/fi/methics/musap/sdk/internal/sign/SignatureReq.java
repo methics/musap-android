@@ -65,6 +65,17 @@ public class SignatureReq {
         this.attributes = attributes;
     }
 
+    public void addAttribute(String name, String value) {
+        this.addAttribute(new SignatureAttribute(name, value));
+    }
+
+    public void addAttribute(SignatureAttribute attribute) {
+        if (this.attributes == null) {
+            this.attributes = new ArrayList<>();
+        }
+        this.attributes.add(attribute);
+    }
+
     public void setTransId(String transId) {
         this.transId = transId;
     }
