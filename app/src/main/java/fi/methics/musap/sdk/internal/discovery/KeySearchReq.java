@@ -60,7 +60,7 @@ public class KeySearchReq {
         return true;
     }
 
-    public class Builder {
+    public static class Builder {
         private String sscdType;
         private String country;
         private String provider;
