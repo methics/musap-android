@@ -34,7 +34,8 @@ public class BindKeyTask extends MusapAsyncTask<MusapKey> {
             MetadataStorage storage = new MetadataStorage(context.get());
 
             MusapSscd activeSscd = sscd.getSscdInfo();
-            String        sscdId = sscd.generateSscdId(key);
+            String        sscdId = sscd.getSettings().getSetting("id");
+//            String        sscdId = sscd.generateSscdId(key);
             activeSscd.setSscdId(sscdId);
             key.setSscdId(sscdId);
 

@@ -47,6 +47,7 @@ public interface MusapSscdInterface<T extends SscdSettings> {
      * @param key MUSAP key
      * @return SSCD ID
      */
+    @Deprecated
     public String generateSscdId(MusapKey key);
 
     /**

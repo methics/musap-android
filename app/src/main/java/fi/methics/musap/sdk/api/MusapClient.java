@@ -175,7 +175,8 @@ public class MusapClient {
      * to support. These will be searchable with {@link #listEnabledSscds()}}.
      * @param sscd SSCD to enable
      */
-    public static void enableSscd(MusapSscdInterface sscd) {
+    public static void enableSscd(MusapSscdInterface sscd, String sscdId) {
+        sscd.getSettings().setSetting("id", sscdId);
         keyDiscovery.enableSscd(sscd);
     }
 
