@@ -348,8 +348,9 @@ public class MusapClient {
      * Poll MUSAP Link for an incoming signature request. This should be called periodically and/or
      * when a notification wakes up the application.
      * Calls the callback when when signature is received, or polling failed.
+     * @param callback Callback to deliver the result
      */
-    public static void pollLink(String url, MusapCallback<PollResponsePayload> callback) {
+    public static void pollLink(MusapCallback<PollResponsePayload> callback) {
         new PollTask(getMusapLink(), callback, context.get()).executeOnExecutor(executor);
     }
 
