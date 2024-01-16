@@ -88,6 +88,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
                 .setCertificate(signature.getSignerCertificate())
                 .setKeyAlias(req.getKeyAlias())
                 .setSscd(this.getSscdInfo())
+                .setAlgorithm(KeyAlgorithm.RSA_2K) // TODO: Make this configurable or resolve it
                 .addAttribute(new KeyAttribute(ATTRIBUTE_MSISDN, msisdn))
                 .build();
     }
