@@ -18,7 +18,7 @@ import fi.methics.musap.sdk.internal.util.MusapRDNStyle;
  */
 public class MusapCertificate {
 
-    private X500Name subject;
+    private String subject;
     private byte[] certificate;
     private PublicKey publicKey;
 
@@ -29,7 +29,7 @@ public class MusapCertificate {
      * @param publicKey Public Key associated with the certificate
      */
     public MusapCertificate(String subject, byte[] cert, PublicKey publicKey) {
-        this.subject     = new X500Name(MusapRDNStyle.INSTANCE, subject);
+        this.subject     = new X500Name(MusapRDNStyle.INSTANCE, subject).toString();
         this.certificate = cert;
         this.publicKey   = publicKey;
     }
@@ -40,7 +40,7 @@ public class MusapCertificate {
      * @throws IOException if the certificate could not be parsed
      */
     public MusapCertificate(X509CertificateHolder cert) throws IOException {
-        this.subject     = cert.getSubject();
+        this.subject     = MusapRDNStyle.INSTANCE.toString(cert.getSubject());
         this.certificate = cert.getEncoded();
         this.publicKey   = new PublicKey(cert.getSubjectPublicKeyInfo().getEncoded());
     }
@@ -51,7 +51,7 @@ public class MusapCertificate {
      * @throws CertificateEncodingException if the certificate could not be parsed
      */
     public MusapCertificate(X509Certificate cert) throws CertificateEncodingException {
-        this.subject     = X500Name.getInstance(cert.getSubjectX500Principal());
+        this.subject     = MusapRDNStyle.INSTANCE.toString(X500Name.getInstance(cert.getSubjectX500Principal()));
         this.certificate = cert.getEncoded();
         this.publicKey   = new PublicKey(cert.getPublicKey().getEncoded());
     }
@@ -61,7 +61,7 @@ public class MusapCertificate {
      * @return GIVENNAME
      */
     public String getGivenName() {
-        return MusapRDNStyle.INSTANCE.getAttribute(this.subject, "GIVENNAME");
+        return getSubjectAttribute("GIVENNAME");
     }
 
     /**
@@ -69,7 +69,7 @@ public class MusapCertificate {
      * @return SURNAME
      */
     public String getSurname() {
-        return MusapRDNStyle.INSTANCE.getAttribute(this.subject, "SURNAME");
+        return getSubjectAttribute("SURNAME");
     }
 
     /**
@@ -77,7 +77,7 @@ public class MusapCertificate {
      * @return SERIALNUMBER
      */
     public String getSerialNumber() {
-        return MusapRDNStyle.INSTANCE.getAttribute(this.subject, "SERIALNUMBER");
+        return getSubjectAttribute("SERIALNUMBER");
     }
 
     /**
@@ -85,7 +85,7 @@ public class MusapCertificate {
      * @return EMAIL
      */
     public String getEmail() {
-        return MusapRDNStyle.INSTANCE.getAttribute(this.subject, "EMAILADDRESS");
+        return getSubjectAttribute("EMAILADDRESS");
     }
 
     /**
@@ -94,7 +94,7 @@ public class MusapCertificate {
      * @return Attribute value or null if not found in subject
      */
     public String getSubjectAttribute(String attrName) {
-        return MusapRDNStyle.INSTANCE.getAttribute(this.subject, attrName);
+        return MusapRDNStyle.INSTANCE.getAttribute(new X500Name(MusapRDNStyle.INSTANCE, this.subject), attrName);
     }
 
     /**
