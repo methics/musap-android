@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -81,6 +82,12 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         request.display  = req.getDisplayText();
         request.format   = "CMS";
 
+        // If MUSAP Link is null (because this class was initialized too early)
+        // try to refetch the link
+        if (this.musapLink == null) {
+            this.musapLink = this.settings.getMusapLink();
+        }
+
         ExternalSignatureResponsePayload response = this.musapLink.sign(request);
         CmsSignature signature = new CmsSignature(response.getRawSignature());
 
@@ -115,6 +122,12 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         request.display  = req.getDisplayText();
         request.format   = req.getFormat().getFormat();
         request.data     = Base64.encodeToString(req.getData(), Base64.NO_WRAP);
+
+        // If MUSAP Link is null (because this class was initialized too early)
+        // try to refetch the link
+        if (this.musapLink == null) {
+            this.musapLink = this.settings.getMusapLink();
+        }
 
         ExternalSignatureResponsePayload response = this.musapLink.sign(request);
 
