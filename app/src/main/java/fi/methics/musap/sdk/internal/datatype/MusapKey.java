@@ -10,6 +10,10 @@ import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapSscd;
 
+/**
+ * MUSAP Key class.
+ * <p>This contains key details like public key, creation date, etc.</p>
+ */
 public class MusapKey {
 
     private String keyAlias;
