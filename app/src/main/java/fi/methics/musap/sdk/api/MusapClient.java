@@ -8,6 +8,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.lang.ref.WeakReference;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -36,12 +37,13 @@ import fi.methics.musap.sdk.internal.discovery.MetadataStorage;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.datatype.KeyURI;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.keygeneration.UpdateKeyReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musap.sdk.internal.util.MusapSscd;
 import fi.methics.musap.sdk.internal.util.MusapStorage;
 
 public class MusapClient {
@@ -50,11 +52,6 @@ public class MusapClient {
     private static KeyDiscoveryAPI keyDiscovery;
     private static MetadataStorage storage;
     private static ExecutorService executor;
-
-    /**
-     * Limit UI related tasks to 1 to avoid concurrency problems.
-     */
-//    private static Semaphore uiSemaphore = new Semaphore(1);
 
     public static void init(Context c) {
         Security.removeProvider("BC");
@@ -74,7 +71,7 @@ public class MusapClient {
      * @param req  Key Generation Request
      * @param callback Callback that will deliver success or failure
      */
-    public static void generateKey(MusapSscdInterface sscd, KeyGenReq req, MusapCallback<MusapKey> callback) {
+    public static void generateKey(MusapSscd sscd, KeyGenReq req, MusapCallback<MusapKey> callback) {
         new GenerateKeyTask(callback, context.get(), sscd, req).executeOnExecutor(executor);
     }
 
@@ -84,7 +81,7 @@ public class MusapClient {
      * @param req  Key Bind Request
      * @param callback Callback that will deliver success or failure
      */
-    public static void bindKey(MusapSscdInterface sscd, KeyBindReq req, MusapCallback<MusapKey> callback) {
+    public static void bindKey(MusapSscd sscd, KeyBindReq req, MusapCallback<MusapKey> callback) {
         new BindKeyTask(callback, context.get(), sscd, req).executeOnExecutor(executor);
     }
 
@@ -108,19 +105,19 @@ public class MusapClient {
 
 
     /**
-     * List SSCDs supported by this MUSAP library. To add an SSCD to this list, call {@link #enableSscd(MusapSscdInterface)} first.
+     * List SSCDs supported by this MUSAP library. To add an SSCD to this list, call {@link #enableSscd(MusapSscdInterface, String)} first.
      * @return List of SSCDs that can be used to generate or bind keys
      */
-    public static List<MusapSscdInterface> listEnabledSscds() {
-        return keyDiscovery.listEnabledSscds();
+    public static List<MusapSscd> listEnabledSscds() {
+        return keyDiscovery.listEnabledSscds().stream().map(s -> new MusapSscd(s)).collect(Collectors.toList());
     }
 
     /**
-     * List SSCDs supported by this MUSAP library. To add an SSCD to this list, call {@link #enableSscd(MusapSscdInterface)} first.
+     * List SSCDs supported by this MUSAP library. To add an SSCD to this list, call {@link #enableSscd(MusapSscdInterface, String)} first.
      * @param req Search request that filters the output
      * @return List of SSCDs that can be used to generate or bind keys
      */
-    public static List<MusapSscdInterface> listEnabledSscds(SscdSearchReq req) {
+    public static List<MusapSscd> listEnabledSscds(SscdSearchReq req) {
         if (req == null) return Collections.emptyList();
         return listEnabledSscds().stream().filter(sscd -> req.matches(sscd.getSscdInfo())).collect(Collectors.toList());
     }
@@ -130,7 +127,18 @@ public class MusapClient {
      * @return List of active SSCDs
      */
     public static List<MusapSscd> listActiveSscds() {
-        return storage.listActiveSscds();
+
+        List<MusapSscd> enabled = listEnabledSscds();
+        List<SscdInfo>  active  = storage.listActiveSscds();
+        List<MusapSscd> result  = new ArrayList<>();
+        for (MusapSscd e : enabled) {
+            if (e == null) continue;
+            if (e.getSscdId() == null) continue;
+            if (active.stream().anyMatch(a -> e.getSscdId().equals(a.getSscdId()))) {
+                result.add(e);
+            }
+        }
+        return result;
     }
 
     /**
@@ -139,7 +147,7 @@ public class MusapClient {
      */
     public static List<MusapSscd> listActiveSscds(SscdSearchReq req) {
         if (req == null) return Collections.emptyList();
-        return listActiveSscds().stream().filter(sscd -> req.matches(sscd)).collect(Collectors.toList());
+        return listActiveSscds().stream().filter(sscd -> req.matches(sscd.getSscdInfo())).collect(Collectors.toList());
     }
 
     /**
@@ -246,10 +254,9 @@ public class MusapClient {
      * Remove an active SSCD from MUSAP.
      * @param sscd SSCD to remove
      */
-    public static void removeSscd(MusapSscd sscd) {
+    public static void removeSscd(SscdInfo sscd) {
         // TODO
     }
-
 
     /**
      * List enrolled Relying Parties

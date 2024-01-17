@@ -8,6 +8,7 @@ import fi.methics.musap.sdk.api.MusapClient;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musap.sdk.internal.util.MusapSscd;
 
 public class MusapKey {
 
@@ -187,14 +188,14 @@ public class MusapKey {
      * Get a handle to the SSCD implementation that created this MUSAP key
      * @return SSCD
      */
-    public MusapSscdInterface getSscdImpl() {
+    public MusapSscd getSscdImpl() {
         if (this.sscdType == null) {
             MLog.d("No SSCD Type found");
             return null;
         }
         MLog.d("Looking for an SSCD with type " + this.sscdType);
-        for (MusapSscdInterface sscd : MusapClient.listEnabledSscds()) {
-            MusapSscd sscdInfo = sscd.getSscdInfo();
+        for (MusapSscd sscd : MusapClient.listEnabledSscds()) {
+            SscdInfo sscdInfo = sscd.getSscdInfo();
             String sscdId = sscd.getSettings().getSetting("id");
 
             if (this.sscdType.equals(sscdInfo.getSscdType())) {
@@ -220,19 +221,10 @@ public class MusapKey {
      * Get details of the SSCD that created this SSCD
      * @return SSCD
      */
-    public MusapSscd getSscdInfo() {
-        if (this.sscdId == null) {
-            MLog.d("No SSCD ID found");
-            return null;
-        }
-        MLog.d("Looking for an SSCD with id " + this.sscdId);
-        for (MusapSscd sscd : MusapClient.listActiveSscds()) {
-            if (this.sscdId.equals(sscd.getSscdId())) {
-                MLog.d("Found SSCD with id " + this.sscdId);
-                return sscd;
-            }
-        }
-        return null;
+    public SscdInfo getSscdInfo() {
+        MusapSscd sscd = this.getSscdImpl();
+        if (sscd == null) return null;
+        return sscd.getSscdInfo();
     }
 
     public void setAlias(String alias) {
@@ -278,7 +270,7 @@ public class MusapKey {
             return this;
         }
 
-        public Builder setSscd(MusapSscd sscd) {
+        public Builder setSscd(SscdInfo sscd) {
             this.sscdId   = sscd.getSscdId();
             this.sscdType = sscd.getSscdType();
             return this;

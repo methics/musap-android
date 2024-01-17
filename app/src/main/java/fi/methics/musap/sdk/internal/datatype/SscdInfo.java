@@ -3,7 +3,7 @@ package fi.methics.musap.sdk.internal.datatype;
 import java.util.Arrays;
 import java.util.List;
 
-public class MusapSscd {
+public class SscdInfo {
 
     private String sscdName;
     private String sscdType;
@@ -14,7 +14,7 @@ public class MusapSscd {
     private List<KeyAlgorithm> algorithms;
     private List<SignatureFormat> formats;
 
-    private MusapSscd(Builder builder) {
+    private SscdInfo(Builder builder) {
         this.sscdName = builder.sscdName;
         this.sscdType = builder.sscdType;
         this.sscdId   = builder.sscdId;
@@ -56,6 +56,7 @@ public class MusapSscd {
     public List<KeyAlgorithm> getSupportedAlgorithms() {
         return this.algorithms;
     }
+
 
     public static class Builder {
         private String sscdName;
@@ -107,8 +108,8 @@ public class MusapSscd {
             return this;
         }
 
-        public MusapSscd build() {
-            return new MusapSscd(this);
+        public SscdInfo build() {
+            return new SscdInfo(this);
         }
     }
 
