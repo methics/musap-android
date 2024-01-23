@@ -2,6 +2,7 @@ package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import com.google.gson.annotations.SerializedName;
 
+import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
@@ -9,6 +10,8 @@ import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 public class PollResponsePayload extends ResponsePayload {
 
     public static final String MODE_SIGN = "sign";
+    public static final String MODE_SIGN_CHOICE = "sign-choice";
+
     public static final String MODE_GENSIGN = "generate-sign";
     public static final String MODE_GENONLY = "generate-only";
 
@@ -49,7 +52,8 @@ public class PollResponsePayload extends ResponsePayload {
      * @return true if new key generation is wanted
      */
     public boolean shouldGenerateKey() {
-        return !MODE_SIGN.equals(this.getMode());
+        return !MODE_SIGN.equalsIgnoreCase(this.getMode()) && !MODE_SIGN_CHOICE.equalsIgnoreCase(this.getMode());
+
     }
 
     /**
@@ -57,7 +61,7 @@ public class PollResponsePayload extends ResponsePayload {
      * @return true if signature is asked
      */
     public boolean shouldSign() {
-        return !MODE_GENONLY.equals(this.getMode());
+        return !MODE_GENONLY.equalsIgnoreCase(this.getMode());
     }
 
     public PollResponsePayload(SignaturePayload signaturePayload, String transId) {
@@ -73,7 +77,7 @@ public class PollResponsePayload extends ResponsePayload {
         return this.transId;
     }
 
-    public SignatureReq toSignatureReq(MusapKey key) {
+    public SignatureReq toSignatureReq(MusapKey key) throws MusapException {
         SignatureReq req = this.signaturePayload.toSignatureReq(key);
         req.setTransId(this.transId);
         return req;

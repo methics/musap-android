@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.SignatureAlgorithm;
@@ -13,6 +14,7 @@ import fi.methics.musap.sdk.internal.datatype.SignatureAttribute;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
+import fi.methics.musap.sdk.internal.util.MLog;
 
 public class SignaturePayload {
 
@@ -46,6 +48,24 @@ public class SignaturePayload {
     @SerializedName("genkey")
     public boolean genkey;
 
+
+    /**
+     * Data choice for cases where user's chosen keystore defines signed data,
+     * such as document signing.
+     */
+    @SerializedName("datachoice")
+    public List<DTBS> datachoice;
+
+    public static class DTBS {
+
+        @SerializedName("data")
+        public String data;
+
+        @SerializedName("key")
+        public KeyIdentifier key;
+
+    }
+
     public static class KeyIdentifier {
 
         @SerializedName("keyid")
@@ -70,7 +90,7 @@ public class SignaturePayload {
      * @param key MUSAP Key chosen by the system or by the user
      * @return {@link SignatureReq}
      */
-    protected SignatureReq toSignatureReq(MusapKey key) {
+    protected SignatureReq toSignatureReq(MusapKey key) throws MusapException {
 
         SignatureFormat format = SignatureFormat.fromString(this.format);
         KeyAlgorithm keyAlgo = key.getAlgorithm();
@@ -82,12 +102,45 @@ public class SignaturePayload {
         }
 
         return new SignatureReq.Builder(signAlgo)
-                .setData(Base64.decode(this.data, Base64.NO_WRAP))
+                .setData(Base64.decode(this.resolveDataToBeSigned(key), Base64.NO_WRAP))
                 .setFormat(format)
                 .setKey(key)
                 .setDisplayText(this.display)
                 .setAttributes(this.attributes)
                 .createSignatureReq();
+    }
+
+    /**
+     * Chooses data to be signed. Request may contain multiple in some use cases, like document
+     * signing.
+     * @param key
+     * @return Data to be signed. Usually this is the value of the data element.
+     */
+    private String resolveDataToBeSigned(MusapKey key) throws MusapException {
+        if (this.datachoice == null || this.datachoice.isEmpty()) {
+            return this.data;
+        }
+
+        String keyId = key.getKeyId();
+        if (keyId == null) {
+            MLog.e("Missing key ID");
+            throw new MusapException("Missing key ID");
+        }
+
+        for (DTBS dtbs: this.datachoice) {
+            if (dtbs.key == null) {
+                MLog.d("Missing key for DTBS " + dtbs);
+                continue;
+            }
+
+            if (keyId.equalsIgnoreCase(dtbs.key.keyid)) {
+                MLog.d("Found matching data choice with " + keyId);
+                return dtbs.data;
+            }
+        }
+
+        MLog.e("No datachoice for key ID " + key.getKeyId());
+        throw new MusapException("No datachoice for key ID" + key.getKeyId());
     }
 
     /**
