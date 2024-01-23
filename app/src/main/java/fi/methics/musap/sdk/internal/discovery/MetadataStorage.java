@@ -14,9 +14,10 @@ import fi.methics.musap.sdk.api.MusapClient;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.keygeneration.UpdateKeyReq;
 import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musap.sdk.internal.util.MusapSscd;
 
 /**
  * MUSAP Metadata Storage class
@@ -60,7 +61,7 @@ public class MetadataStorage {
      * @param key  MUSAP key
      * @param sscd MUSAP SSCD that holds the key
      */
-    public void addKey(MusapKey key, MusapSscd sscd) {
+    public void addKey(MusapKey key, SscdInfo sscd) {
         if (key == null) {
             MLog.e("Cannot store null MUSAP key");
             throw new IllegalArgumentException("Cannot store null MUSAP key");
@@ -168,7 +169,7 @@ public class MetadataStorage {
      * Store metadata of an active MUSAP SSCD
      * @param sscd SSCD (that has keys bound or generated)
      */
-    public void addSscd(MusapSscd sscd) {
+    public void addSscd(SscdInfo sscd) {
         if (sscd == null) {
             MLog.e("Cannot store null MUSAP SSCD");
             throw new IllegalArgumentException("Cannot store null MUSAP SSCD");
@@ -203,15 +204,15 @@ public class MetadataStorage {
      * List available active MUSAP SSCDs
      * @return active MUSAP SSCDs (that have keys bound or generated)
      */
-    public List<MusapSscd> listActiveSscds() {
+    public List<SscdInfo> listActiveSscds() {
         Set<String> sscdIds = this.getAllSscdIds();
-        List<MusapSscd> sscdList = new ArrayList<>();
+        List<SscdInfo> sscdList = new ArrayList<>();
         for (String sscdid : sscdIds) {
             String sscdJson = this.getSscdJson(sscdid);
             if (sscdJson == null) {
                 MLog.e("Missing SSCD metadata JSON for SSCD ID " + sscdid);
             } else {
-                MusapSscd sscd = new Gson().fromJson(sscdJson, MusapSscd.class);
+                SscdInfo sscd = new Gson().fromJson(sscdJson, SscdInfo.class);
                 sscdList.add(sscd);
             }
         }
@@ -224,10 +225,10 @@ public class MetadataStorage {
      */
     public void addImportData(MusapImportData data) {
         if (data == null) return;
-        List<MusapSscd> activeSscds = this.listActiveSscds();
-        List<MusapSscdInterface> enabledSscds = MusapClient.listEnabledSscds();
-        List<MusapKey>  activeKeys  = this.listKeys();
-        for (MusapSscd sscd : data.sscds) {
+        List<SscdInfo>  activeSscds  = this.listActiveSscds();
+        List<MusapSscd> enabledSscds = MusapClient.listEnabledSscds();
+        List<MusapKey>  activeKeys   = this.listKeys();
+        for (SscdInfo sscd : data.sscds) {
             // Avoid duplicate SSCDs and SSCDs that are not enabled in this MUSAP
             boolean alreadyExists   = activeSscds.stream().anyMatch(s -> s.getSscdId().equals(sscd.getSscdId()));
             boolean sscdTypeEnabled = !enabledSscds.stream().anyMatch(s -> s.getSscdInfo().getSscdType().equals(sscd.getSscdType()));
@@ -303,7 +304,7 @@ public class MetadataStorage {
     private String makeStoreName(MusapKey key) {
         return KEY_JSON_PREFIX + key.getKeyId();
     }
-    private String makeStoreName(MusapSscd sscd) {
+    private String makeStoreName(SscdInfo sscd) {
         return SSCD_JSON_PREFIX + sscd.getSscdId();
     }
     private String makeStoreName(String keyId) {

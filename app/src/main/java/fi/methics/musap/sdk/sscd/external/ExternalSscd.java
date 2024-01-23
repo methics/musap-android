@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -24,7 +25,7 @@ import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
@@ -81,6 +82,12 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         request.display  = req.getDisplayText();
         request.format   = "CMS";
 
+        // If MUSAP Link is null (because this class was initialized too early)
+        // try to refetch the link
+        if (this.musapLink == null) {
+            this.musapLink = this.settings.getMusapLink();
+        }
+
         ExternalSignatureResponsePayload response = this.musapLink.sign(request);
         CmsSignature signature = new CmsSignature(response.getRawSignature());
 
@@ -116,14 +123,20 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         request.format   = req.getFormat().getFormat();
         request.data     = Base64.encodeToString(req.getData(), Base64.NO_WRAP);
 
+        // If MUSAP Link is null (because this class was initialized too early)
+        // try to refetch the link
+        if (this.musapLink == null) {
+            this.musapLink = this.settings.getMusapLink();
+        }
+
         ExternalSignatureResponsePayload response = this.musapLink.sign(request);
 
         return new MusapSignature(response.getRawSignature());
     }
 
     @Override
-    public MusapSscd getSscdInfo() {
-        return new MusapSscd.Builder()
+    public SscdInfo getSscdInfo() {
+        return new SscdInfo.Builder()
                 .setSscdName(this.settings.getSscdName())
                 .setSscdType(SSCD_TYPE)
                 .setKeygenSupported(false)

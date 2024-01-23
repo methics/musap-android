@@ -3,7 +3,7 @@ package fi.methics.musap.sdk.extension;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 
@@ -40,13 +40,14 @@ public interface MusapSscdInterface<T extends SscdSettings> {
      * Get SSCD info. Must not return null.
      * @return SSCD info
      */
-    public MusapSscd getSscdInfo();
+    public SscdInfo getSscdInfo();
 
     /**
      * Generate a stable SSCD ID for this
      * @param key MUSAP key
      * @return SSCD ID
      */
+    @Deprecated
     public String generateSscdId(MusapKey key);
 
     /**

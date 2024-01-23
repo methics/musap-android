@@ -23,7 +23,7 @@ import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
@@ -158,8 +158,8 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
     }
 
     @Override
-    public MusapSscd getSscdInfo() {
-        return new MusapSscd.Builder()
+    public SscdInfo getSscdInfo() {
+        return new SscdInfo.Builder()
                 .setSscdType(SSCD_TYPE)
                 .setCountry(this.getSettings().getCountry())
                 .setSscdName(this.getSettings().getSscdName())

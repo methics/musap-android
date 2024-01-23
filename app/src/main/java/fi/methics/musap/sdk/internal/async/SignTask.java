@@ -12,6 +12,7 @@ import fi.methics.musap.sdk.internal.util.AsyncTaskResult;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapAsyncTask;
 import fi.methics.musap.sdk.api.MusapCallback;
+import fi.methics.musap.sdk.internal.util.MusapSscd;
 
 public class SignTask extends MusapAsyncTask<MusapSignature> {
 
@@ -25,7 +26,7 @@ public class SignTask extends MusapAsyncTask<MusapSignature> {
     @Override
     protected AsyncTaskResult<MusapSignature> runOperation() throws MusapException {
         try {
-            MusapSscdInterface sscd = req.getKey().getSscdImpl();
+            MusapSscd sscd = req.getKey().getSscdImpl();
             MusapSignature signature = sscd.sign(req);
             return new AsyncTaskResult<>(signature);
         } catch (MusapException e) {

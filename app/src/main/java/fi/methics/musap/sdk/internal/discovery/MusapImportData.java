@@ -7,14 +7,14 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 
 public class MusapImportData {
 
     private static final Gson GSON = new Gson();
 
     @SerializedName("sscds")
-    public List<MusapSscd> sscds;
+    public List<SscdInfo> sscds;
 
     @SerializedName("keys")
     public List<MusapKey> keys;

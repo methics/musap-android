@@ -1,7 +1,7 @@
 package fi.methics.musap.sdk.internal.discovery;
 
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 
 /**
  * MUSAP SSCD Search request
@@ -11,6 +11,7 @@ public class SscdSearchReq {
     private String sscdType;
     private String country;
     private String provider;
+    private String sscdId;
     private KeyAlgorithm algorithm;
 
     private SscdSearchReq(Builder builder) {
@@ -18,6 +19,7 @@ public class SscdSearchReq {
         this.country      = builder.country;
         this.provider     = builder.provider;
         this.algorithm    = builder.algorithm;
+        this.sscdId       = builder.sscdId;
     }
 
     public String getSscdType() {
@@ -41,7 +43,7 @@ public class SscdSearchReq {
      * @param sscd SSCD to compare against
      * @return true if SSCD matches
      */
-    public boolean matches(MusapSscd sscd) {
+    public boolean matches(SscdInfo sscd) {
         if (this.algorithm != null && !sscd.getSupportedAlgorithms().contains(this.algorithm)) return false;
         if (this.country   != null && !this.country.equals(sscd.getCountry()))   return false;
         if (this.provider  != null && !this.provider.equals(sscd.getProvider())) return false;
@@ -53,6 +55,7 @@ public class SscdSearchReq {
         private String sscdType;
         private String country;
         private String provider;
+        private String sscdId;
         private KeyAlgorithm algorithm;
 
         public Builder setSscdType(String sscdType) {
@@ -67,6 +70,15 @@ public class SscdSearchReq {
 
         public Builder setProvider(String provider) {
             this.provider = provider;
+            return this;
+        }
+
+        public Builder setSscd(SscdInfo sscd) {
+            if (sscd == null) return this;
+            this.sscdId = sscd.getSscdId();
+            this.sscdType = sscd.getSscdType();
+            this.provider = sscd.getProvider();
+            this.country = sscd.getCountry();
             return this;
         }
 

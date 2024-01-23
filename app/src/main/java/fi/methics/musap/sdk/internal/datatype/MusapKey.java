@@ -8,7 +8,12 @@ import fi.methics.musap.sdk.api.MusapClient;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musap.sdk.internal.util.MusapSscd;
 
+/**
+ * MUSAP Key class.
+ * <p>This contains key details like public key, creation date, etc.</p>
+ */
 public class MusapKey {
 
     private String keyAlias;
@@ -187,21 +192,26 @@ public class MusapKey {
      * Get a handle to the SSCD implementation that created this MUSAP key
      * @return SSCD
      */
-    public MusapSscdInterface getSscdImpl() {
+    public MusapSscd getSscdImpl() {
         if (this.sscdType == null) {
             MLog.d("No SSCD Type found");
             return null;
         }
         MLog.d("Looking for an SSCD with type " + this.sscdType);
-        for (MusapSscdInterface sscd : MusapClient.listEnabledSscds()) {
-            MusapSscd sscdInfo = sscd.getSscdInfo();
+        for (MusapSscd sscd : MusapClient.listEnabledSscds()) {
+            SscdInfo sscdInfo = sscd.getSscdInfo();
+            String sscdId = sscd.getSettings().getSetting("id");
+
             if (this.sscdType.equals(sscdInfo.getSscdType())) {
                 if (this.sscdId == null) {
                     MLog.d("Found SSCD with type " + this.sscdType);
                     return sscd;
-                } else if (this.sscdId.equals(sscdInfo.getSscdId())) {
+                } else if (this.sscdId.equals(sscdId)) {
+//                } else if (this.sscdId.equals(sscdInfo.getSscdId())) {
                     MLog.d("Found SSCD with type " + this.sscdType + " and id " + this.sscdId);
                     return sscd;
+                } else {
+                    MLog.d("Unknown SSCD ID " + this.sscdId + " / " + sscdInfo.getSscdId());
                 }
             } else {
                 MLog.d("SSCD " + sscd.getSscdInfo().getSscdType() + " does not match " + this.sscdType);
@@ -215,19 +225,10 @@ public class MusapKey {
      * Get details of the SSCD that created this SSCD
      * @return SSCD
      */
-    public MusapSscd getSscdInfo() {
-        if (this.sscdId == null) {
-            MLog.d("No SSCD ID found");
-            return null;
-        }
-        MLog.d("Looking for an SSCD with id " + this.sscdId);
-        for (MusapSscd sscd : MusapClient.listActiveSscds()) {
-            if (this.sscdId.equals(sscd.getSscdId())) {
-                MLog.d("Found SSCD with id " + this.sscdId);
-                return sscd;
-            }
-        }
-        return null;
+    public SscdInfo getSscdInfo() {
+        MusapSscd sscd = this.getSscdImpl();
+        if (sscd == null) return null;
+        return sscd.getSscdInfo();
     }
 
     public void setAlias(String alias) {
@@ -273,7 +274,7 @@ public class MusapKey {
             return this;
         }
 
-        public Builder setSscd(MusapSscd sscd) {
+        public Builder setSscd(SscdInfo sscd) {
             this.sscdId   = sscd.getSscdId();
             this.sscdType = sscd.getSscdType();
             return this;
