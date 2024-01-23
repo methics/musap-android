@@ -3,12 +3,11 @@ package fi.methics.musap.sdk.internal.discovery;
 import android.content.Context;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 
 public class KeyDiscoveryAPI {
 
@@ -42,7 +41,7 @@ public class KeyDiscoveryAPI {
      * List active SSCDs. This returns all SSCDs that have either a generated or a bound key.
      * @return Active SSCDs
      */
-    public List<MusapSscd> listActiveSSCDs() {
+    public List<SscdInfo> listActiveSSCDs() {
         return storage.listActiveSscds();
     }
 

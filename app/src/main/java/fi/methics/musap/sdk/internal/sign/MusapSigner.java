@@ -10,6 +10,7 @@ import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.api.MusapCallback;
+import fi.methics.musap.sdk.internal.util.MusapSscd;
 
 /**
  * MUSAP class that handles signing.
@@ -46,7 +47,7 @@ public class MusapSigner {
             throw new MusapException("Missing key type");
         }
         try {
-            MusapSscdInterface sscd = this.key.getSscdImpl();
+            MusapSscd sscd = this.key.getSscdImpl();
             if (sscd == null) {
                 throw new MusapException("No SSCD found for key " + this.key.getKeyId() + "(" + this.key.getSscdId() + ")");
             }

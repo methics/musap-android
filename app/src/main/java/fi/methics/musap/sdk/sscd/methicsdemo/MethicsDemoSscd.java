@@ -20,7 +20,7 @@ import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
@@ -103,8 +103,8 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
     }
 
     @Override
-    public MusapSscd getSscdInfo() {
-        return new MusapSscd.Builder()
+    public SscdInfo getSscdInfo() {
+        return new SscdInfo.Builder()
                 .setSscdName(this.settings.getSscdName())
                 .setSscdType(SSCD_TYPE)
                 .setCountry("FI")

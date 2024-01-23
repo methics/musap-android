@@ -29,7 +29,7 @@ import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
@@ -62,7 +62,7 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
     @Override
     public MusapKey generateKey(KeyGenReq req) throws Exception {
 
-        MusapSscd                  sscd = this.getSscdInfo();
+        SscdInfo sscd = this.getSscdInfo();
         String                algorithm = this.resolveAlgorithm(req);
         AlgorithmParameterSpec algSspec = this.resolveAlgorithmParameterSpec(req);
 
@@ -142,8 +142,8 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
     }
 
     @Override
-    public MusapSscd getSscdInfo() {
-        return new MusapSscd.Builder()
+    public SscdInfo getSscdInfo() {
+        return new SscdInfo.Builder()
                 .setSscdName("Android KeyStore")
                 .setSscdType(SSCD_TYPE)
                 .setCountry("FI")

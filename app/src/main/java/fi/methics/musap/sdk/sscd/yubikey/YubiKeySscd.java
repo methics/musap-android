@@ -55,7 +55,7 @@ import fi.methics.musap.sdk.internal.datatype.MusapCertificate;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
-import fi.methics.musap.sdk.internal.datatype.MusapSscd;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
@@ -308,8 +308,8 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     }
 
     @Override
-    public MusapSscd getSscdInfo() {
-        return new MusapSscd.Builder()
+    public SscdInfo getSscdInfo() {
+        return new SscdInfo.Builder()
                 .setSscdName("Yubikey")
                 .setSscdType(SSCD_TYPE)
                 .setCountry("FI")
