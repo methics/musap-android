@@ -51,7 +51,11 @@ public class MusapCertificate {
      * @throws CertificateEncodingException if the certificate could not be parsed
      */
     public MusapCertificate(X509Certificate cert) throws CertificateEncodingException {
-        this.subject     = MusapRDNStyle.INSTANCE.toString(X500Name.getInstance(cert.getSubjectX500Principal()));
+        try {
+            this.subject     = MusapRDNStyle.INSTANCE.toString(X500Name.getInstance(cert.getSubjectX500Principal()));
+        } catch (Exception e) {
+            this.subject = "error";
+        }
         this.certificate = cert.getEncoded();
         this.publicKey   = new PublicKey(cert.getPublicKey().getEncoded());
     }
