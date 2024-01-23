@@ -378,12 +378,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         MLog.d("Device supports ECC=" + openpgp.supports(OpenPgpSession.FEATURE_EC_KEYS));
 
-        MLog.d("Preparing...");
-
-//        Security.removeProvider("BC");
-//        MLog.d("Remove provider");
-//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-//        MLog.d("Insert provider");
         openpgp.verifyAdminPin(DEFAULT_ADMIN_PIN);
 
         MLog.d("Trying to generate a key");
@@ -408,6 +402,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             @Override
             public AlgorithmIdentifier getAlgorithmIdentifier() {
+                // TODO: Return correct algoritm identifier
                 return new AlgorithmIdentifier(X9ObjectIdentifiers.ecdsa_with_SHA256);
             }
 
@@ -419,8 +414,9 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             @Override
             public byte[] getSignature() {
                 try {
-                    // TODO: sign() gives a raw signature. Does it need some pre- or postprocessing?
-                    return openpgp.sign(message);
+                    // TODO: sign the proper payload
+                    byte[] payload = "test".getBytes(StandardCharsets.UTF_8);
+                    return openpgp.sign(payload);
                 } catch (Exception e) {
                     MLog.e("Failed to init content signer", e);
                     return null;
@@ -455,8 +451,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
     private void signOnDevice(String pin, SignatureReq req, SmartCardConnection connection) throws Exception {
 
-        String msg = "Test string";
-
         try {
             OpenPgpSession openpgp = new OpenPgpSession(connection);
 
@@ -469,8 +463,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             openpgp.verifyUserPin(pin.toCharArray(), false);
 
             byte[] message = sigReq.getData();
-
-            // TODO: This produces a raw signature. Does it need processing?
             byte[] sigResult = openpgp.sign(message);
 
             Signature verifier = Signature.getInstance("Ed25519");

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import fi.methics.musap.sdk.internal.discovery.KeyDiscoveryCriteria;
-import fi.methics.musap.sdk.internal.util.LoA;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 public class KeyURI {
@@ -100,57 +99,11 @@ public class KeyURI {
     public String getName() {
         return this.keyUriMap.get(ALIAS);
     }
-    public String getLoa() {
-        return this.keyUriMap.get(LOA);
-    }
     public String getCountry() {
         return this.keyUriMap.get(COUNTRY);
     }
 
-    /**
-     * Check if this KeyURI matches given discovery criteria
-     * @param criteria List of criteria
-     * @return true if match is found
-     */
-    @Deprecated
-    public boolean matchesCriteria(Map<KeyDiscoveryCriteria, String> criteria) {
 
-        // For every given criteria, check if they match
-        for (KeyDiscoveryCriteria c: criteria.keySet()) {
-            boolean matches = this.matchesCriteria(c, criteria.get(c));
-            // Found nonmatching criteria, return false
-            if (!matches) {
-                return false;
-            }
-        }
-
-        // All match
-        return true;
-    }
-
-    @Deprecated
-    private boolean matchesCriteria(KeyDiscoveryCriteria criteria, String value) {
-        Log.d("KeyURI", "Comparing " + criteria + " to value " + value);
-        switch (criteria) {
-            case LEVEL_OF_ASSURANCE:
-                return this.compareLoA(value, this.getLoa());
-            case COUNTRY:
-                return this.compareValue(value, this.getCountry());
-        }
-
-        // Unhandled criteria, return true
-        return true;
-    }
-
-    @Deprecated
-    private boolean compareLoA(String criteriaValue, String ownValue) {
-        return LoA.compareLoA(ownValue, criteriaValue);
-    }
-
-    @Deprecated
-    private boolean compareValue(String criteriaValue, String ownValue) {
-        return Objects.equals(criteriaValue, ownValue);
-    }
 
     /**
      * Get a String representation of this KeyURI (the actual URI)
