@@ -1,13 +1,9 @@
 package fi.methics.musap.sdk.internal.datatype;
 
 
-import android.util.Log;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-import fi.methics.musap.sdk.internal.discovery.KeyDiscoveryCriteria;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 public class KeyURI {
