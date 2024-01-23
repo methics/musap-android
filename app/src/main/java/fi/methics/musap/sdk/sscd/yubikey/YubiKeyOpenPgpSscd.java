@@ -392,14 +392,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         openpgp.verifyUserPin(pin.toCharArray(), false);
         MLog.d("Generated KeyPair");
 
-        // TODO: Remove this signature test code
-        byte[] message = "hello".getBytes(StandardCharsets.UTF_8);
-        byte[] signature = openpgp.sign(message);
-        Signature verifier = Signature.getInstance("Ed25519");
-        verifier.initVerify(publicKey);
-        verifier.update(message);
-        MLog.d("Signature valid=" + verifier.verify(signature));
-
         X500Name name = new X500Name("CN=MUSAP Test");
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
                 name,
