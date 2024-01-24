@@ -30,6 +30,7 @@ import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
+import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musapsdk.R;
 import okhttp3.MediaType;
@@ -70,17 +71,21 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
         CompletableFuture<String> future = new CompletableFuture<>();
 
+
         String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
         if (msisdn == null) {
             this.showEnterMsisdnDialog(req.getActivity(), future);
             msisdn = future.get();
         }
 
+        String keyid = IdGenerator.generateKeyId();
+
         request.data = Base64.encodeToString("Bind Key".getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
         request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
         request.format   = "CMS";
+        request.keyid    = keyid;
 
         // If MUSAP Link is null (because this class was initialized too early)
         // try to refetch the link
@@ -95,6 +100,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
                 .setCertificate(signature.getSignerCertificate())
                 .setKeyAlias(req.getKeyAlias())
                 .setSscd(this.getSscdInfo())
+                .setKeyId(keyid)
                 .setAlgorithm(KeyAlgorithm.RSA_2K) // TODO: Make this configurable or resolve it
                 .addAttribute(new KeyAttribute(ATTRIBUTE_MSISDN, msisdn))
                 .build();
