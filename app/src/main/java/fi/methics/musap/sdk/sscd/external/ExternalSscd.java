@@ -123,11 +123,14 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
             msisdn = future.get();
         }
 
+        MusapKey key = req.getKey();
+
         request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
         request.format   = req.getFormat().getFormat();
         request.data     = Base64.encodeToString(req.getData(), Base64.NO_WRAP);
+        request.keyid    = key.getKeyId();
 
         // If MUSAP Link is null (because this class was initialized too early)
         // try to refetch the link
