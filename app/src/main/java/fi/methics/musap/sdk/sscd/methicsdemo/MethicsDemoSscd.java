@@ -116,11 +116,6 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
     }
 
     @Override
-    public String generateSscdId(MusapKey key) {
-        return SSCD_TYPE + "/" + key.getAttributeValue(ATTRIBUTE_MSISDN);
-    }
-
-    @Override
     public MethicsDemoSettings getSettings() {
         return settings;
     }
