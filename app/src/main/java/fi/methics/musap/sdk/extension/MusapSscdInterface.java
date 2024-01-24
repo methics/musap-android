@@ -43,14 +43,6 @@ public interface MusapSscdInterface<T extends SscdSettings> {
     public SscdInfo getSscdInfo();
 
     /**
-     * Generate a stable SSCD ID for this
-     * @param key MUSAP key
-     * @return SSCD ID
-     */
-    @Deprecated
-    public String generateSscdId(MusapKey key);
-
-    /**
      * Does this SSCD support key generation?
      * @return true if key generation is supported
      */

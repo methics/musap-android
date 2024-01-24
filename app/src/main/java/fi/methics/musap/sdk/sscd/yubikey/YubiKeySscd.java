@@ -68,8 +68,6 @@ import fi.methics.musapsdk.R;
 
 // TODO: When user dismisses any dialog, this will leave hanging forever.
 //       When user cancels a dialog. signing should fail.
-//       Should probably try to rework the dialog system.
-
 public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
 
     private static final byte[] MANAGEMENT_KEY = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8};
@@ -138,11 +136,6 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         if (result.exception != null) throw  result.exception;
 
         throw new MusapException("Signing failed");
-    }
-
-    @Override
-    public String generateSscdId(MusapKey key) {
-        return SSCD_TYPE + "/" + key.getAttributeValue(ATTRIBUTE_SERIAL);
     }
 
     private Activity getActivity() {

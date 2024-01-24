@@ -41,18 +41,11 @@ import okhttp3.OkHttpClient;
  */
 public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
-    public static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
     public static final String SSCD_TYPE         = "External Signature";
     public static final String ATTRIBUTE_MSISDN  = "msisdn";
-    public static final String SIGN_MSG_TYPE     = "externalsignature";
-
-    private static final int POLL_AMOUNT = 10;
-
-    private static final Gson GSON = new Gson();
 
     private Context              context;
     private ExternalSscdSettings settings;
-    private OkHttpClient         client;
     private MusapLink            musapLink;
 
     private String clientid;
@@ -62,7 +55,6 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         this.settings  = settings;
         this.musapLink = settings.getMusapLink();
         this.clientid  = settings.getClientId();
-        this.client    = new OkHttpClient.Builder().readTimeout(settings.getTimeout()).build();
     }
 
     @Override
@@ -153,11 +145,6 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
                 .setSupportedAlgorithms(Arrays.asList(KeyAlgorithm.RSA_2K))
                 .setSupportedFormats(Arrays.asList(SignatureFormat.RAW, SignatureFormat.CMS))
                 .build();
-    }
-
-    @Override
-    public String generateSscdId(MusapKey key) {
-        return SSCD_TYPE + "/" + this.clientid + "/" + key.getAttributeValue(ATTRIBUTE_MSISDN);
     }
 
     @Override

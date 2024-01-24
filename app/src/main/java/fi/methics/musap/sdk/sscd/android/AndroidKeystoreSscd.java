@@ -159,11 +159,6 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
     }
 
     @Override
-    public String generateSscdId(MusapKey key) {
-        return "Android Keystore";
-    }
-
-    @Override
     public AndroidKeystoreSettings getSettings() {
         return settings;
     }

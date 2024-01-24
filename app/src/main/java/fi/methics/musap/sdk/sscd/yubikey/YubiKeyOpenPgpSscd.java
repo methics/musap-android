@@ -133,11 +133,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         throw new MusapException("Signing failed");
     }
 
-    @Override
-    public String generateSscdId(MusapKey key) {
-        return SSCD_TYPE + "/" + key.getAttributeValue(ATTRIBUTE_SERIAL);
-    }
-
     private Activity getActivity() {
         if (this.sigReq != null) return this.sigReq.getActivity();
         if (this.keyGenReq != null) return this.keyGenReq.getActivity();

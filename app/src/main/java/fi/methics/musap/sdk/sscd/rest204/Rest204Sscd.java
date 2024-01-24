@@ -171,11 +171,6 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
     }
 
     @Override
-    public String generateSscdId(MusapKey key) {
-        return SSCD_TYPE + "/" + key.getAttributeValue(ATTRIBUTE_MSISDN);
-    }
-
-    @Override
     public Rest204Settings getSettings() {
         return this.settings;
     }
