@@ -31,6 +31,7 @@ import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musap.sdk.internal.util.MusapStorage;
 import fi.methics.musapsdk.R;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -131,7 +132,9 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
         ExternalSignatureResponsePayload response = this.musapLink.sign(request);
 
-        return new MusapSignature(response.getRawSignature());
+        MusapSignature sig = new MusapSignature(response.getRawSignature());
+        sig.setKey(req.getKey());
+        return sig;
     }
 
     @Override

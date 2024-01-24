@@ -14,9 +14,6 @@ import fi.methics.musap.sdk.internal.util.MLog;
 
 public class SignatureCallbackPayload {
 
-    @SerializedName("linkid")
-    public String linkid;
-
     @SerializedName("signature")
     public String signature;
 
@@ -29,8 +26,7 @@ public class SignatureCallbackPayload {
     @SerializedName("keyid")
     public String keyid;
 
-    public SignatureCallbackPayload(String linkid, MusapKey key) {
-        this.linkid = linkid;
+    public SignatureCallbackPayload(MusapKey key) {
         if (key != null) {
             this.keyid = key.getKeyId();
             this.keyuri = key.getKeyUri().toString();
@@ -41,18 +37,24 @@ public class SignatureCallbackPayload {
         }
     }
 
-    public SignatureCallbackPayload(String linkid, MusapSignature signature) {
-        this.linkid = linkid;
+    public SignatureCallbackPayload(MusapSignature signature) {
         if (signature != null) {
             this.signature = signature.getB64Signature();
+
             PublicKey publickey = signature.getPublicKey();
             if (publickey != null) {
+                MLog.d("Setting PublicKey");
                 this.publickey = publickey.getPEM();
+            } else {
+                MLog.d("No PublicKey");
             }
             MusapKey key = signature.getKey();
             if (key != null) {
+                MLog.d("Setting MusapKey");
                 this.keyid = key.getKeyId();
                 this.keyuri = key.getKeyUri().toString();
+            } else {
+                MLog.d("No MusapKey");
             }
         }
     }

@@ -273,7 +273,7 @@ public class MusapLink {
      * @throws IOException
      */
     public void sendKeygenCallback(MusapKey key, String transId) throws IOException {
-        SignatureCallbackPayload payload = new SignatureCallbackPayload(null, key);
+        SignatureCallbackPayload payload = new SignatureCallbackPayload(key);
 
         MusapMessage msg = new MusapMessage();
         msg.type = KEY_CALLBACK_MSG_TYPE;
@@ -312,7 +312,7 @@ public class MusapLink {
      */
     public void sendSignatureCallback(MusapSignature signature, String transId) throws IOException {
 
-        SignatureCallbackPayload payload = new SignatureCallbackPayload(null, signature);
+        SignatureCallbackPayload payload = new SignatureCallbackPayload(signature);
 
         MusapMessage msg = new MusapMessage();
         msg.type = SIG_CALLBACK_MSG_TYPE;
