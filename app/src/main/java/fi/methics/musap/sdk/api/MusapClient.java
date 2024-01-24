@@ -46,6 +46,11 @@ import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapSscd;
 import fi.methics.musap.sdk.internal.util.MusapStorage;
 
+/**
+ * MusapClient contains the primary operations of the MUSAP library.
+ * All methods that contain either network or time intensive operations
+ * are asynchronous. Such methods require the caller to provide a MusapCallback object.
+ */
 public class MusapClient {
 
     private static WeakReference<Context> context;

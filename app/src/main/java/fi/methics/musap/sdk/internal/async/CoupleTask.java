@@ -33,7 +33,6 @@ public class CoupleTask extends MusapAsyncTask<RelyingParty> {
     @Override
     protected AsyncTaskResult<RelyingParty> runOperation() throws MusapException {
         try {
-            // TODO: Add proper error handling
             RelyingParty rp = link.couple(this.couplingCode, this.appId);
             if (rp == null) {
                 throw new MusapException("Wrong coupling code");

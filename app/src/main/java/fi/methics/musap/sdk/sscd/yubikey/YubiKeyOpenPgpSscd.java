@@ -373,12 +373,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         MLog.d("Device supports ECC=" + openpgp.supports(OpenPgpSession.FEATURE_EC_KEYS));
 
-        MLog.d("Preparing...");
-
-//        Security.removeProvider("BC");
-//        MLog.d("Remove provider");
-//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-//        MLog.d("Insert provider");
         openpgp.verifyAdminPin(DEFAULT_ADMIN_PIN);
 
         MLog.d("Trying to generate a key");
@@ -386,14 +380,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         PublicKey publicKey = openpgp.generateEcKey(KeyRef.SIG, OpenPgpCurve.Ed25519).toPublicKey();
         openpgp.verifyUserPin(pin.toCharArray(), false);
         MLog.d("Generated KeyPair");
-
-        // TODO: Remove this signature test code
-        byte[] message = "hello".getBytes(StandardCharsets.UTF_8);
-        byte[] signature = openpgp.sign(message);
-        Signature verifier = Signature.getInstance("Ed25519");
-        verifier.initVerify(publicKey);
-        verifier.update(message);
-        MLog.d("Signature valid=" + verifier.verify(signature));
 
         X500Name name = new X500Name("CN=MUSAP Test");
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
@@ -411,6 +397,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             private ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             @Override
             public AlgorithmIdentifier getAlgorithmIdentifier() {
+                // TODO: Return correct algoritm identifier
                 return new AlgorithmIdentifier(X9ObjectIdentifiers.ecdsa_with_SHA256);
             }
 
@@ -422,8 +409,9 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             @Override
             public byte[] getSignature() {
                 try {
-                    // TODO: sign() gives a raw signature. Does it need some pre- or postprocessing?
-                    return openpgp.sign(message);
+                    // TODO: sign the proper payload
+                    byte[] payload = "test".getBytes(StandardCharsets.UTF_8);
+                    return openpgp.sign(payload);
                 } catch (Exception e) {
                     MLog.e("Failed to init content signer", e);
                     return null;
@@ -458,8 +446,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
     private void signOnDevice(String pin, SignatureReq req, SmartCardConnection connection) throws Exception {
 
-        String msg = "Test string";
-
         try {
             OpenPgpSession openpgp = new OpenPgpSession(connection);
 
@@ -472,8 +458,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             openpgp.verifyUserPin(pin.toCharArray(), false);
 
             byte[] message = sigReq.getData();
-
-            // TODO: This produces a raw signature. Does it need processing?
             byte[] sigResult = openpgp.sign(message);
 
             Signature verifier = Signature.getInstance("Ed25519");
@@ -509,142 +493,4 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         return c.getTime();
     }
 
-
-//    @Override
-//    public MusapKey bindKey(KeyBindReq req) throws Exception {
-//        return null;
-//    }
-//
-//    @Override
-//    public MusapKey generateKey(KeyGenReq req) throws Exception {
-//
-//        this.keyGenReq = req;
-//        this.sigReq = null;
-//        this.keygenFuture = new CompletableFuture<>();
-//
-//        Context c = req.getActivity();
-//        View v = LayoutInflater.from(c).inflate(R.layout.dialog_pin, null);
-//
-//        String pin = "123456";
-//
-//        this.yubiKeyGen(pin, req, null);
-//
-//        return null;
-//    }
-//
-//    private void yubiKeyGen(String pin, KeyGenReq req, GenerateKeyCallback callback) {
-//        try {
-//            yubiKitManager.startNfcDiscovery(new NfcConfiguration(), req.getActivity(), device -> {
-//                MLog.d("Found NFC");
-//                connect(device, req, pin);
-//            });
-//        } catch (NfcNotAvailable e) {
-//            if (e.isDisabled()) {
-//                Toast.makeText(c, "NFC is not enabled", Toast.LENGTH_SHORT).show();
-//            } else {
-//                Toast.makeText(c, "NFC is not available", Toast.LENGTH_SHORT).show();
-//            }
-//            yubiKitManager.stopNfcDiscovery(req.getActivity());
-//        }
-//    }
-//
-//    private void connect(final NfcYubiKeyDevice device, final KeyGenReq req, String pin)  {
-//
-//        device.requestConnection(SmartCardConnection.class, result -> {
-//            // The result is a Result<SmartCardConnection, IOException>, which represents either a successful connection, or an error.
-//            try {
-//                boolean success = result.isSuccess();
-//                MLog.d("Connection successful=" + success);
-//
-//                // If the connection is not successful, try again
-//                if (!success) {
-//                    MLog.d("Failed to connect");
-//                    this.showKeyGenFailedDualog(req);
-//                } else {
-//                    MLog.d("PIN=" + pin);
-//                    keyGenOnDevice(req, pin, result.getValue());
-//                }
-//            } catch (Exception e) {
-//                MLog.e("Failed to connect", e);
-//                this.showKeyGenFailedDualog(req);
-//                yubiKitManager.stopNfcDiscovery(req.getActivity());
-//            }
-//        });
-//    }
-//
-//    private void keyGenOnDevice(KeyGenReq req, String pin, SmartCardConnection connection) throws Exception {
-//        OpenPgpSession openpgp = new OpenPgpSession(connection);
-//        MLog.d("Opened OpenPGP session");
-//
-//        MLog.d("Device supports ECC=" + openpgp.supports(OpenPgpSession.FEATURE_EC_KEYS));
-//
-//        Security.removeProvider("BC");
-//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-//        openpgp.verifyAdminPin(DEFAULT_ADMIN_PIN);
-//
-//
-//        byte[] message = "hello".getBytes(StandardCharsets.UTF_8);
-//        PublicKey publicKey = openpgp.generateEcKey(KeyRef.SIG, OpenPgpCurve.Ed25519).toPublicKey();
-//        openpgp.verifyUserPin(DEFAULT_USER_PIN, false);
-//        byte[] signature = openpgp.sign(message);
-//
-//        Signature verifier = Signature.getInstance("Ed25519");
-//        verifier.initVerify(publicKey);
-//        verifier.update(message);
-//        MLog.d("Signature valid=" + verifier.verify(signature));
-//    }
-//
-//    public void showKeyGenFailedDualog(KeyGenReq req) {
-//
-//        // Dismiss old dialog if it it showing
-//        req.getActivity().runOnUiThread(() -> {
-//            if (currentPrompt != null) {
-//                currentPrompt.dismiss();
-//            }
-//        });
-//
-//        Context c = req.getActivity();
-//        View v = LayoutInflater.from(c).inflate(R.layout.dialog_keygen_failed, null);
-//
-//        req.getActivity().runOnUiThread(() -> {
-//            currentPrompt = new AlertDialog.Builder(c)
-//                    .setTitle("Key Generation Failed")
-//                    .setView(v)
-//                    .create();
-//            currentPrompt.show();
-//        });
-//    }
-//
-//        @Override
-//    public MusapSignature sign(SignatureReq req) throws Exception {
-//        return null;
-//    }
-//
-//    @Override
-//    public MusapSscd getSscdInfo() {
-//        return new MusapSscd.Builder()
-//                .setSscdName("Yubikey OpenPGP")
-//                .setSscdType(SSCD_TYPE)
-//                .setCountry("FI")
-//                .setProvider("Yubico")
-//                .setKeygenSupported(true)
-//                .setSupportedAlgorithms(Arrays.asList(KeyAlgorithm.ECC_P256_K1, KeyAlgorithm.ECC_P384_K1))
-//                .setSupportedFormats(Arrays.asList(SignatureFormat.RAW))
-//                .build();
-//    }
-//
-//    @Override
-//    public String generateSscdId(MusapKey key) {
-//        return SSCD_TYPE + "/" + key.getAttributeValue(ATTRIBUTE_SERIAL);
-//    }
-//
-//    @Override
-//    public boolean isKeygenSupported() {
-//        return true;
-//    }
-//
-//    @Override
-//    public YubiKeySettings getSettings() {
-//        return this.settings;
-//    }
 }

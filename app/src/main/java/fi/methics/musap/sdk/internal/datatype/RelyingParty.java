@@ -1,12 +1,13 @@
 package fi.methics.musap.sdk.internal.datatype;
 
-import com.google.gson.Gson;
 
 import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountResponsePayload;
 
+/**
+ * Relying party is an operator of a MUSAP Link service.
+ * Instances of MUSAP apps link to these.
+ */
 public class RelyingParty {
-
-    private static final Gson GSON = new Gson();
 
     private String name;
     private String linkid;
