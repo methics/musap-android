@@ -9,6 +9,10 @@ It provides a set of tools and utilities to streamline the implementation of sec
 * **Secure Signature Creation**: Implement secure and standardized methods for creating digital signatures within your application.
 * **Customizable**: MUSAP is designed with flexibility in mind, allowing developers to customize and extend its functionality according to specific project requirements.
 
+### Reference implementation app
+
+We have a reference implementation app available that serves as an example on how to use the library. You can find the app project [here](https://github.com/methics/musap-demo-android).
+
 ## Installing
 
 To integrate MUSAP into your Android project, follow these steps:
@@ -42,8 +46,8 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         MusapClient.init(this);
-        MusapClient.enableSscd(new AndroidKeystoreSscd(this));
-        MusapClient.enableSscd(new YubiKeySscd(this));
+        MusapClient.enableSscd(new AndroidKeystoreSscd(this), "ANDROID");
+        MusapClient.enableSscd(new YubiKeySscd(this), "YUBIKEY");
     }
 }
 
@@ -102,6 +106,85 @@ try {
 }
 
 ```
+
+
+### Binding Keys
+
+Select a key, create a signature request and a `MusapSigner`. Finally call `MusapSigner.sign()`. The signature result is delivered asynchronously through the given callback.
+
+```java
+KeyBindReq req = new KeyBindReq.Builder()
+        .setActivity(this.getActivity())
+        .setView(this.getView())
+        .setRole("personal")
+        .setKeyAlias(alias)
+        .createKeyBindReq();
+MusapSscd sscd = this.listActiveSscds().get(0);
+try {
+    MusapClient.bindKey.sign(sscd, req, new MusapCallback<MusapSignature>() {
+        @Override
+        public void onSuccess(MusapKey key) {
+            MLog.d("Bind succeeded");
+        }
+
+        @Override
+        public void onException(MusapException e) {
+            MLog.e("Failed to bind", e.getCause());
+        }
+    });
+} catch (MusapException e) {
+    MLog.e("Failed to bind", e.getCause());
+}
+
+```
+
+### Listing Keys
+
+Select a key, create a signature request and a `MusapSigner`. Finally call `MusapSigner.sign()`. The signature result is delivered asynchronously through the given callback.
+
+```java
+List<MusapKey> keys = MusapClient.listKeys();
+
+for (MusapKey key : keys) {
+    // get your data
+}
+```
+
+### Get enabled SSCDs
+
+Get list of SSCDs that have been enabled MusapClient.enableSscd().
+```java
+
+List<MusapSscd> enabledSscds = MusapClient.listEnabledSscds();
+
+for (MusapSscd sscd : enabledSscds) {
+    // get your data
+}
+```
+
+
+### Get active SSCDs
+
+Get a list of SSCDs that have active keys.
+
+```java
+
+List<MusapSscd> activeSscds = MusapClient.listActiveSscds();
+
+for (MusapSscd sscd : activeSscds) {
+    // get your data
+}
+```
+
+## Architecture
+
+### MUSAP Library
+
+![musap-lib-overview](https://github.com/methics/musap-android/assets/4453264/48bb375b-d651-42ad-b94c-7f794c1ef330)
+
+### MUSAP Link
+
+![link-library-architecture](https://github.com/methics/musap-android/assets/4453264/66119517-1fbe-4829-9e5b-c50ca9643dde)
 
 ## License
 
