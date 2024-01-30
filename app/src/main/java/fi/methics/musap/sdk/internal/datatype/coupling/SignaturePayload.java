@@ -45,10 +45,6 @@ public class SignaturePayload {
     @SerializedName("attributes")
     public List<SignatureAttribute> attributes;
 
-    @SerializedName("genkey")
-    public boolean genkey;
-
-
     /**
      * Data choice for cases where user's chosen keystore defines signed data,
      * such as document signing.

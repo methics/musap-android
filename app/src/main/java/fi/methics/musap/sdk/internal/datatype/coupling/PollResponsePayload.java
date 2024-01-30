@@ -77,6 +77,31 @@ public class PollResponsePayload extends ResponsePayload {
         return this.transId;
     }
 
+    /**
+     * Get the key ID this request is meant for, if any.
+     * @return Key ID, or null if key ID is not in request
+     */
+    public String getKeyId() {
+        if (this.signaturePayload == null || this.signaturePayload.key == null) {
+            return null;
+        }
+
+        return this.signaturePayload.key.keyid;
+    }
+
+    /**
+     * Get the key name this request is meant for, if any.
+     * @return Key name, or null if key ID is not in request
+     */
+    public String getKeyName() {
+        if (this.signaturePayload == null || this.signaturePayload.key == null) {
+            return null;
+        }
+
+        return this.signaturePayload.key.keyname;
+    }
+
+
     public SignatureReq toSignatureReq(MusapKey key) throws MusapException {
         SignatureReq req = this.signaturePayload.toSignatureReq(key);
         req.setTransId(this.transId);

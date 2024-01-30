@@ -24,7 +24,6 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 
 import java.io.ByteArrayInputStream;
@@ -33,8 +32,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
-import java.security.Security;
-import java.security.Signature;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -49,8 +46,8 @@ import fi.methics.musap.sdk.internal.datatype.MusapCertificate;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
-import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
@@ -85,6 +82,9 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
     private KeyGenReq keyGenReq;
     private SignatureReq sigReq;
+
+    // Yubikey API supports signing only with the signature key slot.
+    private KeyRef slot = KeyRef.SIG;
 
     private final Context c;
 
@@ -220,7 +220,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         });
     }
 
-    public void showKeyGenFailedDualog(KeyGenReq req) {
+    public void showKeyGenFailedDualog(KeyGenReq req, Exception e) {
 
         // Dismiss old dialog if it it showing
         req.getActivity().runOnUiThread(() -> {
@@ -231,6 +231,13 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         Context c = req.getActivity();
         View v = LayoutInflater.from(c).inflate(R.layout.dialog_keygen_failed, null);
+        TextView reason = v.findViewById(R.id.text_fail_reason);
+
+        if (e == null) {
+            reason.setVisibility(View.GONE);
+        } else {
+            reason.setText(e.getMessage());
+        }
 
         req.getActivity().runOnUiThread(() -> {
             currentPrompt = new AlertDialog.Builder(c)
@@ -241,7 +248,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         });
     }
 
-    public void showSignFailedDialog(SignatureReq req) {
+    public void showSignFailedDialog(SignatureReq req, Exception e) {
 
         // Dismiss old dialog if it it showing
         req.getActivity().runOnUiThread(() -> {
@@ -252,6 +259,13 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         Context c = req.getActivity();
         View v = LayoutInflater.from(c).inflate(R.layout.dialog_sign_failed, null);
+        TextView reason = v.findViewById(R.id.text_sign_fail_reason);
+
+        if (e == null) {
+            reason.setVisibility(View.GONE);
+        } else {
+            reason.setText(e.getMessage());
+        }
 
         req.getActivity().runOnUiThread(() -> {
             currentPrompt = new AlertDialog.Builder(c)
@@ -303,7 +317,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
                 .setCountry("FI")
                 .setProvider("Yubico")
                 .setKeygenSupported(true)
-                .setSupportedAlgorithms(Arrays.asList(KeyAlgorithm.ECC_P256_K1, KeyAlgorithm.ECC_P384_K1))
+                .setSupportedAlgorithms(Arrays.asList(KeyAlgorithm.ECC_P256_K1, KeyAlgorithm.ECC_ED25519))
                 .setSupportedFormats(Arrays.asList(SignatureFormat.RAW))
                 .build();
     }
@@ -329,14 +343,14 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
                 // If the connection is not successful, try again
                 if (!success) {
                     MLog.d("Failed to connect");
-                    this.showKeyGenFailedDualog(req);
+                    this.showKeyGenFailedDualog(req, null);
                 } else {
                     MLog.d("PIN=" + pin);
                     keyGenOnDevice(req, pin, result.getValue());
                 }
             } catch (Exception e) {
                 MLog.e("Failed to connect", e);
-                this.showKeyGenFailedDualog(req);
+                this.showKeyGenFailedDualog(req, e);
                 yubiKitManager.stopNfcDiscovery(req.getActivity());
             }
         });
@@ -353,7 +367,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
                 // If the connection is not successful, try again
                 if (!success) {
                     MLog.d("Failed to connect");
-                    this.showSignFailedDialog(req);
+                    this.showSignFailedDialog(req, null);
                     yubiKitManager.stopNfcDiscovery(req.getActivity());
                 } else {
                     MLog.d("PIN=" + pin);
@@ -361,7 +375,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
                 }
             } catch (Exception e) {
                 MLog.e("Failed to connect", e);
-                this.showSignFailedDialog(req);
+                this.showSignFailedDialog(req, e);
                 yubiKitManager.stopNfcDiscovery(req.getActivity());
             }
         });
@@ -377,7 +391,17 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         MLog.d("Trying to generate a key");
 
-        PublicKey publicKey = openpgp.generateEcKey(KeyRef.SIG, OpenPgpCurve.Ed25519).toPublicKey();
+        OpenPgpCurve curve;
+        if (req.getAlgorithm() == null || req.getAlgorithm().equals(KeyAlgorithm.ECC_ED25519)) {
+            curve = OpenPgpCurve.Ed25519;
+        } else  if (req.getAlgorithm().equals(KeyAlgorithm.ECC_P256_K1)) {
+            curve = OpenPgpCurve.SECP256K1;
+        } else {
+            MLog.e("Unsupported algoritm " + req.getAlgorithm());
+            throw new IllegalArgumentException("Unsupported algorithm " + req.getAlgorithm());
+        }
+
+        PublicKey publicKey = openpgp.generateEcKey(this.slot, curve).toPublicKey();
         openpgp.verifyUserPin(pin.toCharArray(), false);
         MLog.d("Generated KeyPair");
 
@@ -423,7 +447,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         X509Certificate builtCert = (X509Certificate) CertificateFactory.getInstance("X.509")
                 .generateCertificate(new ByteArrayInputStream(certBytes));
 
-        openpgp.putCertificate(KeyRef.SIG, builtCert);
+        openpgp.putCertificate(this.slot, builtCert);
         MLog.d("Put certificate to slot");
 
         MusapCertificate cert = new MusapCertificate(builtCert);
@@ -431,7 +455,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         MusapKey.Builder keyBuilder = new MusapKey.Builder();
         keyBuilder.setCertificate(cert);
         keyBuilder.setKeyAlias(req.getKeyAlias());
-        keyBuilder.addAttribute(ATTRIBUTE_SERIAL, Integer.toHexString(openpgp.getAid().getSerial()));
+        keyBuilder.addAttribute(ATTRIBUTE_SERIAL, this.serialToString(openpgp.getAid().getSerial()));
         keyBuilder.setSscdType(this.getSscdInfo().getSscdType());
         keyBuilder.setSscdId(this.getSscdInfo().getSscdId());
         keyBuilder.setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3));
@@ -448,22 +472,19 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         try {
             OpenPgpSession openpgp = new OpenPgpSession(connection);
-
             MLog.d("Opened OpenPGP session");
-
             MLog.d("Device supports ECC=" + openpgp.supports(OpenPgpSession.FEATURE_EC_KEYS));
 
-            Security.removeProvider("BC");
-            Security.insertProviderAt(new BouncyCastleProvider(), 1);
             openpgp.verifyUserPin(pin.toCharArray(), false);
+
+            int serial = openpgp.getAid().getSerial();
+            if (!isSerialCorrect(serial, sigReq.getKey())) {
+                MLog.e("Wrong serial key");
+                throw new MusapException(MusapException.ERROR_WRONG_PARAM, "Wrong device. Expected serial " + this.serialToString(serial));
+            }
 
             byte[] message = sigReq.getData();
             byte[] sigResult = openpgp.sign(message);
-
-            Signature verifier = Signature.getInstance("Ed25519");
-            verifier.initVerify(openpgp.getPublicKey(KeyRef.SIG).toPublicKey());
-            verifier.update(message);
-            MLog.d("Signature valid=" + verifier.verify(sigResult));
 
             // Dismiss old dialog if it it showing
             getActivity().runOnUiThread(() -> {
@@ -491,6 +512,24 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         c.setTime(new Date());
         c.add(Calendar.YEAR, 5);
         return c.getTime();
+    }
+
+    private boolean isSerialCorrect(int deviceSerial, MusapKey key) {
+        String received = this.serialToString(deviceSerial);
+        String stored = key.getAttributeValue(ATTRIBUTE_SERIAL);
+
+        if (key.getAttribute(ATTRIBUTE_SERIAL) == null) {
+            MLog.d("No serial saved");
+            return true;
+        } else {
+            MLog.d("Received serial=" + received);
+            MLog.d("Stored serial  =" + stored);
+            return stored.equalsIgnoreCase(received);
+        }
+    }
+
+    private String serialToString(int serial) {
+        return Integer.toString(serial);
     }
 
 }
