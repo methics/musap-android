@@ -398,7 +398,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             curve = OpenPgpCurve.SECP256K1;
         } else {
             MLog.e("Unsupported algoritm " + req.getAlgorithm());
-            throw new IllegalArgumentException("Unsupported algoritm " + req.getAlgorithm());
+            throw new IllegalArgumentException("Unsupported algorithm " + req.getAlgorithm());
         }
 
         PublicKey publicKey = openpgp.generateEcKey(this.slot, curve).toPublicKey();
