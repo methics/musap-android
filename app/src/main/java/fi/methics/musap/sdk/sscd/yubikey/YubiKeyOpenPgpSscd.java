@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +32,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
-import java.security.Signature;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -222,7 +220,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         });
     }
 
-    public void showKeyGenFailedDualog(KeyGenReq req) {
+    public void showKeyGenFailedDualog(KeyGenReq req, Exception e) {
 
         // Dismiss old dialog if it it showing
         req.getActivity().runOnUiThread(() -> {
@@ -233,6 +231,13 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         Context c = req.getActivity();
         View v = LayoutInflater.from(c).inflate(R.layout.dialog_keygen_failed, null);
+        TextView reason = v.findViewById(R.id.text_fail_reason);
+
+        if (e == null) {
+            reason.setVisibility(View.GONE);
+        } else {
+            reason.setText(e.getMessage());
+        }
 
         req.getActivity().runOnUiThread(() -> {
             currentPrompt = new AlertDialog.Builder(c)
@@ -243,7 +248,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         });
     }
 
-    public void showSignFailedDialog(SignatureReq req) {
+    public void showSignFailedDialog(SignatureReq req, Exception e) {
 
         // Dismiss old dialog if it it showing
         req.getActivity().runOnUiThread(() -> {
@@ -254,6 +259,13 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         Context c = req.getActivity();
         View v = LayoutInflater.from(c).inflate(R.layout.dialog_sign_failed, null);
+        TextView reason = v.findViewById(R.id.text_sign_fail_reason);
+
+        if (e == null) {
+            reason.setVisibility(View.GONE);
+        } else {
+            reason.setText(e.getMessage());
+        }
 
         req.getActivity().runOnUiThread(() -> {
             currentPrompt = new AlertDialog.Builder(c)
@@ -331,14 +343,14 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
                 // If the connection is not successful, try again
                 if (!success) {
                     MLog.d("Failed to connect");
-                    this.showKeyGenFailedDualog(req);
+                    this.showKeyGenFailedDualog(req, null);
                 } else {
                     MLog.d("PIN=" + pin);
                     keyGenOnDevice(req, pin, result.getValue());
                 }
             } catch (Exception e) {
                 MLog.e("Failed to connect", e);
-                this.showKeyGenFailedDualog(req);
+                this.showKeyGenFailedDualog(req, e);
                 yubiKitManager.stopNfcDiscovery(req.getActivity());
             }
         });
@@ -355,7 +367,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
                 // If the connection is not successful, try again
                 if (!success) {
                     MLog.d("Failed to connect");
-                    this.showSignFailedDialog(req);
+                    this.showSignFailedDialog(req, null);
                     yubiKitManager.stopNfcDiscovery(req.getActivity());
                 } else {
                     MLog.d("PIN=" + pin);
@@ -363,7 +375,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
                 }
             } catch (Exception e) {
                 MLog.e("Failed to connect", e);
-                this.showSignFailedDialog(req);
+                this.showSignFailedDialog(req, e);
                 yubiKitManager.stopNfcDiscovery(req.getActivity());
             }
         });
@@ -443,7 +455,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         MusapKey.Builder keyBuilder = new MusapKey.Builder();
         keyBuilder.setCertificate(cert);
         keyBuilder.setKeyAlias(req.getKeyAlias());
-        keyBuilder.addAttribute(ATTRIBUTE_SERIAL, Integer.toHexString(openpgp.getAid().getSerial()));
+        keyBuilder.addAttribute(ATTRIBUTE_SERIAL, this.serialToString(openpgp.getAid().getSerial()));
         keyBuilder.setSscdType(this.getSscdInfo().getSscdType());
         keyBuilder.setSscdId(this.getSscdInfo().getSscdId());
         keyBuilder.setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3));
@@ -465,9 +477,10 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
             openpgp.verifyUserPin(pin.toCharArray(), false);
 
-            if (!isSerialCorrect(openpgp.getAid().getSerial(), sigReq.getKey())) {
+            int serial = openpgp.getAid().getSerial();
+            if (!isSerialCorrect(serial, sigReq.getKey())) {
                 MLog.e("Wrong serial key");
-                throw new MusapException(MusapException.ERROR_WRONG_PARAM, "Wrong serial key");
+                throw new MusapException(MusapException.ERROR_WRONG_PARAM, "Wrong device. Expected serial " + this.serialToString(serial));
             }
 
             byte[] message = sigReq.getData();
@@ -502,7 +515,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
     }
 
     private boolean isSerialCorrect(int deviceSerial, MusapKey key) {
-        String received = Integer.toHexString(deviceSerial);
+        String received = this.serialToString(deviceSerial);
         String stored = key.getAttributeValue(ATTRIBUTE_SERIAL);
 
         if (key.getAttribute(ATTRIBUTE_SERIAL) == null) {
@@ -513,6 +526,10 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
             MLog.d("Stored serial  =" + stored);
             return stored.equalsIgnoreCase(received);
         }
+    }
+
+    private String serialToString(int serial) {
+        return Integer.toString(serial);
     }
 
 }
