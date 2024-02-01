@@ -393,8 +393,10 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         OpenPgpCurve curve;
         if (req.getAlgorithm() == null || req.getAlgorithm().equals(KeyAlgorithm.ECC_ED25519)) {
+            MLog.d("Generating Ed25519");
             curve = OpenPgpCurve.Ed25519;
         } else  if (req.getAlgorithm().equals(KeyAlgorithm.ECC_P256_K1)) {
+            MLog.d("Generating SECP256K1");
             curve = OpenPgpCurve.SECP256K1;
         } else {
             MLog.e("Unsupported algoritm " + req.getAlgorithm());
