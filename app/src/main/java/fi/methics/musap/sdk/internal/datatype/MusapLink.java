@@ -46,10 +46,10 @@ public class MusapLink {
     private static final int POLL_AMOUNT = 20;
 
     // Okhttp connect timeout milliseconds
-    private static final int connectTimeOutMs = 30000;
+    private static final int connectTimeOutMs = 60000;
 
     // Okhttp connect timeout milliseconds
-    private static final int readTimeOutMs = 30000;
+    private static final int readTimeOutMs = 60000;
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -116,7 +116,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -157,7 +157,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -196,7 +196,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -246,7 +246,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -298,7 +298,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -337,7 +337,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -394,6 +394,8 @@ public class MusapLink {
      */
     private MusapMessage sendRequest(MusapMessage msg) throws IOException {
         MLog.d("Sending request " + msg.toJson());
+        MLog.d("Target URL " + this.url);
+
         RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
         Request request = new Request.Builder()
                 .url(this.url)
