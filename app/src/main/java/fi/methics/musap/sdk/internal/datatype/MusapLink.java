@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountPayload;
@@ -39,7 +40,16 @@ public class MusapLink {
     private static final String KEY_CALLBACK_MSG_TYPE = "generatekeycallback";
     private static final String SIGN_MSG_TYPE         = "externalsignature";
 
+    /**
+     * How many times to poll for a signature response
+     */
     private static final int POLL_AMOUNT = 20;
+
+    // Okhttp connect timeout milliseconds
+    private static final int connectTimeOutMs = 30000;
+
+    // Okhttp connect timeout milliseconds
+    private static final int readTimeOutMs = 30000;
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -389,7 +399,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -453,6 +463,13 @@ public class MusapLink {
             return resp;
         }
         return null;
+    }
+
+    private OkHttpClient buildClient() {
+        return new OkHttpClient.Builder()
+                .readTimeout(readTimeOutMs, TimeUnit.MILLISECONDS)
+                .connectTimeout(connectTimeOutMs, TimeUnit.MILLISECONDS)
+                .build();
     }
 
 }
