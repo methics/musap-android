@@ -67,6 +67,11 @@ public class KeyAlgorithm {
     public static KeyAlgorithm fromString(String algo) {
         if (algo == null) return null;
         switch (algo.toUpperCase()) {
+            case CURVE_25519: return ECC_ED25519;
+            case CURVE_SECP256K1: return ECC_P256_K1;
+            case CURVE_SECP256R1: return ECC_P256_R1;
+            case CURVE_SECP384K1: return ECC_P384_K1;
+            case CURVE_SECP384R1: return ECC_P384_R1;
             case ALG_STR_RSA_2K: return RSA_2K;
             case ALG_STR_RSA_4K: return RSA_4K;
             case ALG_STR_ECC_P256_K1: return ECC_P256_K1;
