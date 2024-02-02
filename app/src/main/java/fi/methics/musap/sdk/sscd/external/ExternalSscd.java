@@ -61,15 +61,18 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     @Override
     public MusapKey bindKey(KeyBindReq req) throws Exception {
 
+        MLog.d("Binding ExternalSscd");
+
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
         CompletableFuture<String> future = new CompletableFuture<>();
-
 
         String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
         if (msisdn == null) {
             this.showEnterMsisdnDialog(req.getActivity(), future);
             msisdn = future.get();
         }
+
+        MLog.d("MSISDN=" + msisdn);
 
         String keyid = IdGenerator.generateKeyId();
 
@@ -80,12 +83,14 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         request.format   = "CMS";
         request.keyid    = keyid;
 
+        MLog.d("Created bind request");
         // If MUSAP Link is null (because this class was initialized too early)
         // try to refetch the link
         if (this.musapLink == null) {
             this.musapLink = this.settings.getMusapLink();
         }
 
+        MLog.d("Sending sign request to MUSAP Link");
         ExternalSignatureResponsePayload response = this.musapLink.sign(request);
         CmsSignature signature = new CmsSignature(response.getRawSignature());
 

@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountPayload;
@@ -39,7 +40,16 @@ public class MusapLink {
     private static final String KEY_CALLBACK_MSG_TYPE = "generatekeycallback";
     private static final String SIGN_MSG_TYPE         = "externalsignature";
 
+    /**
+     * How many times to poll for a signature response
+     */
     private static final int POLL_AMOUNT = 20;
+
+    // Okhttp connect timeout milliseconds
+    private static final int connectTimeOutMs = 60000;
+
+    // Okhttp connect timeout milliseconds
+    private static final int readTimeOutMs = 60000;
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -106,7 +116,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -147,7 +157,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -186,7 +196,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -236,7 +246,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -288,7 +298,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -327,7 +337,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -349,6 +359,7 @@ public class MusapLink {
      * @throws MusapException if signature failed
      */
     public ExternalSignatureResponsePayload sign(ExternalSignaturePayload payload) throws IOException, MusapException {
+        MLog.d("MUSAP Link sign");
 
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
@@ -382,12 +393,15 @@ public class MusapLink {
      * @throws IOException
      */
     private MusapMessage sendRequest(MusapMessage msg) throws IOException {
+        MLog.d("Sending request " + msg.toJson());
+        MLog.d("Target URL " + this.url);
+
         RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
         Request request = new Request.Builder()
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -414,7 +428,9 @@ public class MusapLink {
      * @throws MusapException if signature failed
      */
     private ExternalSignatureResponsePayload pollForSignature(String transid) throws IOException, MusapException {
+        MLog.d("Polling for signature");
         for (int i = 0; i < POLL_AMOUNT; i++) {
+            MLog.d("Poll attempt " + i);
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -449,6 +465,15 @@ public class MusapLink {
             return resp;
         }
         return null;
+    }
+
+    private OkHttpClient buildClient() {
+        // TODO: App can just use one client.
+        //  Maybe have a short timeout and long timeout clients?
+        return new OkHttpClient.Builder()
+                .readTimeout(readTimeOutMs, TimeUnit.MILLISECONDS)
+                .connectTimeout(connectTimeOutMs, TimeUnit.MILLISECONDS)
+                .build();
     }
 
 }
