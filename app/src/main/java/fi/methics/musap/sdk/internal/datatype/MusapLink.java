@@ -468,6 +468,8 @@ public class MusapLink {
     }
 
     private OkHttpClient buildClient() {
+        // TODO: App can just use one client.
+        //  Maybe have a short timeout and long timeout clients?
         return new OkHttpClient.Builder()
                 .readTimeout(readTimeOutMs, TimeUnit.MILLISECONDS)
                 .connectTimeout(connectTimeOutMs, TimeUnit.MILLISECONDS)
