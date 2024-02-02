@@ -2,6 +2,7 @@ package fi.methics.musap.sdk.internal.datatype.coupling;
 
 import com.google.gson.annotations.SerializedName;
 
+import fi.methics.musap.sdk.api.MusapClient;
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
@@ -102,12 +103,30 @@ public class PollResponsePayload extends ResponsePayload {
     }
 
 
+    /**
+     * Convert this payload to a Signature request
+     * @param key Key chosen by the user, or defined by {@link #resolveKey()}}
+     * @return Signature Request
+     * @throws MusapException
+     */
     public SignatureReq toSignatureReq(MusapKey key) throws MusapException {
         SignatureReq req = this.signaturePayload.toSignatureReq(key);
         req.setTransId(this.transId);
         return req;
     }
 
+    /**
+     * Resolve requested {@link MusapKey} from this payload.
+     * @return {@link MusapKey} if request defined a keyid and matching key was found
+     */
+    public MusapKey resolveKey() {
+        return MusapClient.getKeyByKeyID(this.getKeyId());
+    }
+
+    /**
+     * Convert this payload to a Key Generation request
+     * @return Key Genration request
+     */
     public KeyGenReq toKeygenReq() {
         KeyGenReq req = this.signaturePayload.toKeygenReq();
         return req;

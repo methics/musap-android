@@ -194,39 +194,6 @@ public class MusapClient {
     }
 
     /**
-     * Get a key by KeyURI
-     * @param keyUri KeyURI as String
-     * @return Key or null if none found
-     */
-    public static MusapKey getKeyByUri(String keyUri) {
-        MLog.d("Searching for key with KeyURI " + keyUri);
-        MetadataStorage storage = new MetadataStorage(context.get());
-        for (MusapKey key : storage.listKeys()) {
-            if (key.getKeyUri().matches(new KeyURI(keyUri))) {
-                MLog.d("Found key " + key.getKeyAlias());
-                return key;
-            }
-        }
-        MLog.d("Found no key!");
-        return null;
-    }
-
-    /**
-     * Get a key by KeyURI
-     * @param keyUri KeyURI as {@link KeyURI} object
-     * @return Key or null if none found
-     */
-    public static MusapKey getKeyByUri(KeyURI keyUri) {
-        MetadataStorage storage = new MetadataStorage(context.get());
-        for (MusapKey key : storage.listKeys()) {
-            if (key.getKeyUri().matches(keyUri)) {
-                return key;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Get a key by KeyID
      * @param keyid KeyID
      * @return Key or null if no matching key was found
@@ -242,6 +209,33 @@ public class MusapClient {
             }
         }
         MLog.d("Found no key with KeyID "  + keyid);
+        return null;
+    }
+
+    /**
+     * Get a key by KeyURI
+     * @param keyUri KeyURI as String
+     * @return Key or null if none found
+     */
+    public static MusapKey getKeyByUri(String keyUri) {
+        return getKeyByUri(new KeyURI(keyUri));
+    }
+
+    /**
+     * Get a key by KeyURI
+     * @param keyUri KeyURI as {@link KeyURI} object
+     * @return Key or null if none found
+     */
+    public static MusapKey getKeyByUri(KeyURI keyUri) {
+        MLog.d("Searching for key with KeyURI " + keyUri);
+        MetadataStorage storage = new MetadataStorage(context.get());
+        for (MusapKey key : storage.listKeys()) {
+            if (key.getKeyUri().matches(keyUri)) {
+                MLog.d("Found key " + key.getKeyAlias());
+                return key;
+            }
+        }
+        MLog.d("Found no key with KeyURI " + keyUri);
         return null;
     }
 
