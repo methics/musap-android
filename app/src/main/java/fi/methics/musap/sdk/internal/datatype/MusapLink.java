@@ -349,6 +349,7 @@ public class MusapLink {
      * @throws MusapException if signature failed
      */
     public ExternalSignatureResponsePayload sign(ExternalSignaturePayload payload) throws IOException, MusapException {
+        MLog.d("MUSAP Link sign");
 
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
@@ -382,6 +383,7 @@ public class MusapLink {
      * @throws IOException
      */
     private MusapMessage sendRequest(MusapMessage msg) throws IOException {
+        MLog.d("Sending request " + msg.toJson());
         RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
         Request request = new Request.Builder()
                 .url(this.url)
@@ -414,7 +416,9 @@ public class MusapLink {
      * @throws MusapException if signature failed
      */
     private ExternalSignatureResponsePayload pollForSignature(String transid) throws IOException, MusapException {
+        MLog.d("Polling for signature");
         for (int i = 0; i < POLL_AMOUNT; i++) {
+            MLog.d("Poll attempt " + i);
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
