@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
+import fi.methics.musap.sdk.internal.datatype.SignatureAttribute;
 import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
@@ -78,6 +79,9 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
         request.data = Base64.encodeToString("Bind Key".getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
         request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
+        for (KeyAttribute attr : req.getAttributes()) {
+            request.attributes.put(attr.name, attr.value);
+        }
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
         request.format   = "CMS";
@@ -124,6 +128,9 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         MusapKey key = req.getKey();
 
         request.attributes.put(ATTRIBUTE_MSISDN, msisdn);
+        for (SignatureAttribute attr : req.getAttributes()) {
+            request.attributes.put(attr.name, attr.value);
+        }
         request.clientid = this.clientid;
         request.display  = req.getDisplayText();
         request.format   = req.getFormat().getFormat();
