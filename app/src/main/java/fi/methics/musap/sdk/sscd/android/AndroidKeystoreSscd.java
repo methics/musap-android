@@ -22,15 +22,15 @@ import java.util.Arrays;
 import fi.methics.musap.sdk.api.MusapConstants;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
+import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
+import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.datatype.PublicKey;
 import fi.methics.musap.sdk.internal.datatype.SignatureAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
-import fi.methics.musap.sdk.internal.datatype.MusapKey;
-import fi.methics.musap.sdk.internal.datatype.SscdInfo;
-import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
@@ -62,17 +62,23 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
     @Override
     public MusapKey generateKey(KeyGenReq req) throws Exception {
 
+        Security.removeProvider("BC");
+        MLog.d("Remove provider");
+//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+//        MLog.d("Insert provider");
+
         SscdInfo sscd = this.getSscdInfo();
         String                algorithm = this.resolveAlgorithm(req);
         AlgorithmParameterSpec algSspec = this.resolveAlgorithmParameterSpec(req);
 
         MLog.d("Generating with algorithm " + algorithm);
 
-        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-
         KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(req.getKeyAlias(),
                 KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
-                .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512);
+                .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                .setSignaturePaddings(
+                        KeyProperties.SIGNATURE_PADDING_RSA_PKCS1,
+                        KeyProperties.SIGNATURE_PADDING_RSA_PSS);
 
         if (algSspec != null) {
             builder.setAlgorithmParameterSpec(algSspec);
@@ -84,6 +90,7 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
         KeyGenParameterSpec spec = builder.build();
         MLog.d("Algorithm spec " + spec);
 
+//        KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithm, new BouncyCastleProvider());
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithm, "AndroidKeyStore");
         kpg.initialize(spec);
 
@@ -97,6 +104,7 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
                 .setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3))
                 .setPublicKey(new PublicKey(keyPair))
                 .setKeyId(IdGenerator.generateKeyId())
+                .setAlgorithm(req.getAlgorithm())
                 .build();
         MLog.d("Generated key with KeyURI " + generatedKey.getKeyUri());
 
@@ -106,8 +114,14 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
     @Override
     public MusapSignature sign(SignatureReq req) throws GeneralSecurityException, IOException {
         String alias = req.getKey().getKeyAlias();
+        Security.removeProvider("BC");
+        MLog.d("Remove provider");
+//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+//        MLog.d("Insert provider");
 
+//        KeyStore ks = KeyStore.getInstance("AndroidKeyStore", new BouncyCastleProvider());
         KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
+
         ks.load(null);
         KeyStore.Entry entry = ks.getEntry(alias, null);
         if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
@@ -170,10 +184,15 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
      */
     private AlgorithmParameterSpec resolveAlgorithmParameterSpec(KeyGenReq req) {
         KeyAlgorithm algorithm = req.getAlgorithm();
-        if (algorithm == null) return null;
+        if (algorithm == null) {
+            MLog.d("Null algorithm");
+            return null;
+        }
         if (algorithm.isRsa()) {
+            MLog.d("RSA algorithm");
             return new RSAKeyGenParameterSpec(algorithm.bits, RSAKeyGenParameterSpec.F4);
         } else {
+            MLog.d("ECC algorithm");
             return new ECGenParameterSpec(algorithm.curve);
         }
     }
