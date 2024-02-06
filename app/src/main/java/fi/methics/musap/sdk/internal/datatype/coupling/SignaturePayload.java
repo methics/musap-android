@@ -24,6 +24,9 @@ public class SignaturePayload {
     @SerializedName("data")
     public String data;
 
+    @SerializedName("mimetype")
+    public String mimetype;
+
     @SerializedName("display")
     public String display = "Sign with MUSAP";
 
@@ -59,6 +62,9 @@ public class SignaturePayload {
 
         @SerializedName("key")
         public KeyIdentifier key;
+
+        @SerializedName("mimetype")
+        public String mimetype;
 
     }
 
@@ -103,6 +109,7 @@ public class SignaturePayload {
                 .setKey(key)
                 .setDisplayText(this.display)
                 .setAttributes(this.attributes)
+                .addAttribute("mimetype", this.resolveMimeType(key))
                 .createSignatureReq();
     }
 
@@ -137,6 +144,24 @@ public class SignaturePayload {
 
         MLog.e("No datachoice for key ID " + key.getKeyId());
         throw new MusapException("No datachoice for key ID" + key.getKeyId());
+    }
+
+    /**
+     * Resolve Mime-Type to use
+     * @param key Selected Key
+     * @return Mime-Type or null
+     */
+    private String resolveMimeType(MusapKey key) {
+        if (this.datachoice == null || this.datachoice.isEmpty()) {
+            return this.mimetype;
+        }
+        String keyId = key.getKeyId();
+        if (keyId == null) return null;
+        for (DTBS dtbs: this.datachoice) {
+            if (dtbs.mimetype == null) continue;
+            if (keyId.equalsIgnoreCase(dtbs.key.keyid)) return dtbs.mimetype;
+        }
+        return null;
     }
 
     /**
