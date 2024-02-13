@@ -41,15 +41,22 @@ public class MusapLink {
     private static final String SIGN_MSG_TYPE         = "externalsignature";
 
     /**
-     * How many times to poll for a signature response
+     * How many times to poll for a signature response.
+     * For now, we use a slightly excessive number to prevent unwanted errors in testing.
      */
-    private static final int POLL_AMOUNT = 20;
+    private static final int POLL_AMOUNT = 200;
+
+    /**
+     * How often app polls for a signature.
+     * For now, we use a slightly excessive number to prevent unwanted errors in testing.
+     */
+    private static final int POLL_INTERVAL_MS = 1000;
 
     // Okhttp connect timeout milliseconds
-    private static final int connectTimeOutMs = 60000;
+    private static final int connectTimeOutMs = 120000;
 
     // Okhttp connect timeout milliseconds
-    private static final int readTimeOutMs = 60000;
+    private static final int readTimeOutMs = 120000;
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -432,7 +439,7 @@ public class MusapLink {
         for (int i = 0; i < POLL_AMOUNT; i++) {
             MLog.d("Poll attempt " + i);
             try {
-                Thread.sleep(2000);
+                Thread.sleep(POLL_INTERVAL_MS);
             } catch (InterruptedException e) {
                 MLog.d("Poll interrupted");
                 continue;
