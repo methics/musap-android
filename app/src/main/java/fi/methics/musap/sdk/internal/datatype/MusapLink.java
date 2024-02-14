@@ -50,7 +50,7 @@ public class MusapLink {
      * How often app polls for a signature.
      * For now, we use a slightly excessive number to prevent unwanted errors in testing.
      */
-    private static final int POLL_INTERVAL_MS = 1000;
+    private static final int POLL_INTERVAL_MS = 2000;
 
     // Okhttp connect timeout milliseconds
     private static final long connectTimeOutMs = 180*1000;
@@ -396,13 +396,17 @@ public class MusapLink {
         return resp;
     }
 
-    /**
-     * Send a MUSAP Coupling API message
-     * @param msg Request
-     * @return Response or null if not available
-     * @throws IOException
-     */
     private MusapMessage sendRequest(MusapMessage msg) throws IOException {
+        return sendRequest(msg, this.buildClient());
+    }
+
+        /**
+         * Send a MUSAP Coupling API message
+         * @param msg Request
+         * @return Response or null if not available
+         * @throws IOException
+         */
+    private MusapMessage sendRequest(MusapMessage msg, OkHttpClient client) throws IOException {
         MLog.d("Sending request " + msg.toJson());
         MLog.d("Target URL " + this.url);
 
@@ -411,7 +415,6 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = this.buildClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -439,6 +442,9 @@ public class MusapLink {
      */
     private ExternalSignatureResponsePayload pollForSignature(String transid) throws IOException, MusapException {
         MLog.d("Polling for signature");
+        // Build a client for polling
+        OkHttpClient client = this.buildClient();
+
         for (int i = 0; i < POLL_AMOUNT; i++) {
             MLog.d("Poll attempt " + i);
             try {
@@ -457,7 +463,7 @@ public class MusapLink {
             msg.musapId = getMusapId();
             MLog.d("Message=" + msg.toJson());
 
-            MusapMessage respMsg = sendRequest(msg);
+            MusapMessage respMsg = sendRequest(msg, client);
             if (respMsg == null || respMsg.payload == null) {
                 MLog.d("Null payload");
                 return null;
