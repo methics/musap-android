@@ -53,10 +53,13 @@ public class MusapLink {
     private static final int POLL_INTERVAL_MS = 1000;
 
     // Okhttp connect timeout milliseconds
-    private static final int connectTimeOutMs = 120000;
+    private static final long connectTimeOutMs = 180*1000;
+    private static final long callTimeOutMs = 240*1000;
+    private static final long writeTimeoutMs = 180*1000;
 
     // Okhttp connect timeout milliseconds
-    private static final int readTimeOutMs = 120000;
+    private static final long readTimeOutMs = 180*1000;
+
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -480,6 +483,8 @@ public class MusapLink {
         return new OkHttpClient.Builder()
                 .readTimeout(readTimeOutMs, TimeUnit.MILLISECONDS)
                 .connectTimeout(connectTimeOutMs, TimeUnit.MILLISECONDS)
+                .callTimeout(callTimeOutMs, TimeUnit.MILLISECONDS)
+                .writeTimeout(writeTimeoutMs, TimeUnit.MILLISECONDS)
                 .build();
     }
 
