@@ -4,12 +4,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
-
-import com.google.gson.Gson;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -18,25 +15,22 @@ import java.util.concurrent.CompletableFuture;
 import fi.methics.musap.sdk.api.MusapException;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
-import fi.methics.musap.sdk.internal.datatype.SignatureAttribute;
-import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
-import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
-import fi.methics.musap.sdk.internal.datatype.SscdInfo;
+import fi.methics.musap.sdk.internal.datatype.SignatureAttribute;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
+import fi.methics.musap.sdk.internal.datatype.SscdInfo;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
-import fi.methics.musap.sdk.internal.util.MusapStorage;
 import fi.methics.musapsdk.R;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 
 /**
  * SSCD that uses MUSAP Link to request signatures with the "externalsign" Coupling API call
