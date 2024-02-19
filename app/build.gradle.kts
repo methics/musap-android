@@ -1,6 +1,5 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.dokka") version "1.9.10"
 }
 
 android {
@@ -39,8 +38,6 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment:2.7.5")
     implementation("androidx.navigation:navigation-ui:2.7.5")
     implementation("com.github.tony19:logback-android:3.0.0")
-
-    dokkaPlugin("org.jetbrains.dokka:android-documentation-plugin:1.9.10")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
