@@ -17,6 +17,7 @@ public class KeyBindReq {
     private String role;
     private StepUpPolicy stepUpPolicy;
     private List<KeyAttribute> attributes;
+    private List<String> keyusages;
 
     private Activity activity;
     private View view;
@@ -77,6 +78,10 @@ public class KeyBindReq {
         return this.displayText;
     }
 
+    public List<String> getKeyUsages() {
+        return this.keyusages;
+    }
+
     public static class Builder {
         private String keyAlias;
         private String displayText = "Activate MUSAP";
@@ -84,6 +89,7 @@ public class KeyBindReq {
         private String role;
         private StepUpPolicy stepUpPolicy;
         private List<KeyAttribute> attributes = new ArrayList<>();
+        private List<String> keyusages = new ArrayList<>();
         private Activity activity;
         private View view;
 
@@ -125,6 +131,11 @@ public class KeyBindReq {
             return this;
         }
 
+        public Builder addKeyUsage(String usage) {
+            this.keyusages.add(usage);
+            return this;
+        }
+
         public Builder addAttribute(String key, String value) {
             this.attributes.add(new KeyAttribute(key, value));
             return this;
@@ -150,6 +161,7 @@ public class KeyBindReq {
             req.view         = view;
             req.activity     = activity;
             req.displayText  = displayText;
+            req.keyusages    = keyusages;
             return req;
         }
     }

@@ -7,6 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import fi.methics.musap.sdk.internal.util.MLog;
@@ -30,6 +31,9 @@ public class ExternalSignaturePayload {
 
     @SerializedName("keyid")
     public String keyid;
+
+    @SerializedName("keyusages")
+    public List<String> keyusages;
 
     @SerializedName("publickey")
     public String publickey;

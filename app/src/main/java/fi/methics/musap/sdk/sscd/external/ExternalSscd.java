@@ -80,6 +80,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         request.display  = req.getDisplayText();
         request.format   = "CMS";
         request.keyid    = keyid;
+        request.keyusages= req.getKeyUsages();
 
         MLog.d("Created bind request");
         // If MUSAP Link is null (because this class was initialized too early)
@@ -130,6 +131,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         request.format   = req.getFormat().getFormat();
         request.data     = Base64.encodeToString(req.getData(), Base64.NO_WRAP);
         request.keyid    = key.getKeyId();
+        request.keyusages= key.getKeyUsages();
 
         // If MUSAP Link is null (because this class was initialized too early)
         // try to refetch the link
