@@ -60,6 +60,13 @@ public class MusapLink {
     // Okhttp connect timeout milliseconds
     private static final long readTimeOutMs = 180*1000;
 
+    // Okhttp connect timeout milliseconds
+    private static final long shortConnectTimeOutMs = 10*1000;
+    private static final long shortCallTimeOutMs = 20*1000;
+    private static final long shortWriteTimeoutMs = 10*1000;
+
+    // Okhttp connect timeout milliseconds
+    private static final long shortReadTimeOutMs = 10*1000;
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
@@ -256,7 +263,7 @@ public class MusapLink {
                 .url(this.url)
                 .post(body)
                 .build();
-        OkHttpClient client = this.buildClient();
+        OkHttpClient client = this.buildShortTimeoutClient();
         try (Response response = client.newCall(request).execute()) {
             if (response.body() != null) {
                 String sResp = response.body().string();
@@ -494,4 +501,17 @@ public class MusapLink {
                 .build();
     }
 
+    /**
+     * Build an Okhttp client with shorter timeouts.
+     * Good for polling and other noncritical requests.
+     * @return
+     */
+    private OkHttpClient buildShortTimeoutClient() {
+        return new OkHttpClient.Builder()
+                .readTimeout(shortReadTimeOutMs, TimeUnit.MILLISECONDS)
+                .connectTimeout(shortConnectTimeOutMs, TimeUnit.MILLISECONDS)
+                .callTimeout(shortCallTimeOutMs, TimeUnit.MILLISECONDS)
+                .writeTimeout(shortWriteTimeoutMs, TimeUnit.MILLISECONDS)
+                .build();
+    }
 }
