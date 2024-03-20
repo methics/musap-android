@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 import fi.methics.musap.sdk.api.MusapException;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
+import fi.methics.musap.sdk.attestation.UiccKeyAttestation;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
@@ -118,6 +120,11 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
     @Override
     public MethicsDemoSettings getSettings() {
         return settings;
+    }
+
+    @Override
+    public KeyAttestation getKeyAttestation() {
+        return new UiccKeyAttestation();
     }
 
     /**

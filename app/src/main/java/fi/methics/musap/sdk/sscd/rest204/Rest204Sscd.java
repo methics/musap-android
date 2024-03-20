@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import fi.methics.musap.sdk.api.MusapException;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
+import fi.methics.musap.sdk.attestation.UiccKeyAttestation;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.CmsSignature;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
@@ -175,6 +177,10 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
         return this.settings;
     }
 
+    @Override
+    public KeyAttestation getKeyAttestation() {
+        return new UiccKeyAttestation();
+    }
 
     /**
      * Show a dialog asking for the MSISDN

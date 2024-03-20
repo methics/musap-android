@@ -8,13 +8,19 @@ import fi.methics.musap.sdk.internal.datatype.MusapKey;
  */
 public class NoKeyAttestation extends KeyAttestation {
 
-    public NoKeyAttestation(MusapKey key) {
-        super(key);
+    @Override
+    public KeyAttestationResult attest(MusapKey key) {
+        return new KeyAttestationResult.Builder(getAttestationType()).build();
     }
 
     @Override
-    public KeyAttestationResult attest() {
-        return new KeyAttestationResult.Builder().build();
+    public String getAttestationType() {
+        return "No Attestation";
+    }
+
+    @Override
+    public boolean isAttestationSupported() {
+        return false;
     }
 
 }

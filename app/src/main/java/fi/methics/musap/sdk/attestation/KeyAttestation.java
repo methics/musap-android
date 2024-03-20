@@ -7,24 +7,27 @@ import fi.methics.musap.sdk.internal.datatype.MusapKey;
  */
 public abstract class KeyAttestation {
 
-    private MusapKey key;
-
-    public KeyAttestation(MusapKey key) {
-        this.key = key;
-    }
-
     /**
-     * Attest the associated key
+     * Attest the given key
+     * @param key MUSAP key
      * @return attestation result
      */
-    public abstract KeyAttestationResult attest();
+    public abstract KeyAttestationResult attest(MusapKey key);
 
     /**
-     * Get the key this attestation object is tied to
-     * @return MUSAP key
+     * Get the attestation type.
+     * This can be a simple String that tells what attestation mechanism was used
+     * (e.g. "UICC").
+     * @return Attestation type
      */
-    public MusapKey getKey() {
-        return this.key;
+    public abstract String getAttestationType();
+
+    /**
+     * Check if key attestation is supported
+     * @return true if supported
+     */
+    public boolean isAttestationSupported() {
+        return true;
     }
 
 }

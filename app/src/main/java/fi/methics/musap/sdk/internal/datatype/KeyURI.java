@@ -33,8 +33,8 @@ public class KeyURI {
             keyUriMap.put(CREATED_DT, key.getCreatedDate().toString().split("T")[0]);
         }
 
-        if (key.getKeyAttribute(MSISDN) != null) keyUriMap.put(MSISDN, key.getKeyAttribute(MSISDN));
-        if (key.getKeyAttribute(SERIAL) != null) keyUriMap.put(MSISDN, key.getKeyAttribute(SERIAL));
+        if (key.getAttributeValue(MSISDN) != null) keyUriMap.put(MSISDN, key.getAttributeValue(MSISDN));
+        if (key.getAttributeValue(SERIAL) != null) keyUriMap.put(MSISDN, key.getAttributeValue(SERIAL));
 
         if (key.getSscdInfo() != null) {
             String sscdName     = key.getSscdInfo().getSscdName();

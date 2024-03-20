@@ -1,5 +1,8 @@
 package fi.methics.musap.sdk.extension;
 
+import fi.methics.musap.sdk.attestation.KeyAttestation;
+import fi.methics.musap.sdk.attestation.KeyAttestationResult;
+import fi.methics.musap.sdk.attestation.NoKeyAttestation;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
@@ -41,6 +44,23 @@ public interface MusapSscdInterface<T extends SscdSettings> {
      * @return SSCD info
      */
     public SscdInfo getSscdInfo();
+
+    /**
+     * Get the associated key attestation mechanism
+     * @return key attestation mechanism
+     */
+    public default KeyAttestation getKeyAttestation() {
+        return new NoKeyAttestation();
+    }
+
+    /**
+     * Attest given key with the KeyAttestation mechanism defined for this SSCD
+     * @param key Key to attest
+     * @return Key Attestation result
+     */
+    public default KeyAttestationResult attestKey(MusapKey key) {
+        return this.getKeyAttestation().attest(key);
+    }
 
     /**
      * Does this SSCD support key generation?
