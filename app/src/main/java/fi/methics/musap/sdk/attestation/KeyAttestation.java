@@ -12,7 +12,7 @@ public abstract class KeyAttestation {
      * @param key MUSAP key
      * @return attestation result
      */
-    public abstract KeyAttestationResult attest(MusapKey key);
+    public abstract KeyAttestationResult getAttestationData(MusapKey key);
 
     /**
      * Get the attestation type.

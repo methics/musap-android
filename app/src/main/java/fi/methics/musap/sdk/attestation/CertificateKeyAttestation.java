@@ -12,7 +12,7 @@ import fi.methics.musap.sdk.attestation.KeyAttestationResult.AttestationStatus;
 public class CertificateKeyAttestation extends KeyAttestation {
 
     @Override
-    public KeyAttestationResult attest(MusapKey key) {
+    public KeyAttestationResult getAttestationData(MusapKey key) {
 
         KeyAttestationResult.Builder builder = new KeyAttestationResult.Builder(getAttestationType());
         if (key == null) {

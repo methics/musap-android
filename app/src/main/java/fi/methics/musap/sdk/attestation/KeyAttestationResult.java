@@ -38,6 +38,10 @@ public class KeyAttestationResult {
     @SerializedName("AttestationStatus")
     private AttestationStatus attestationStatus;
 
+    /**
+     * Build a new {@link KeyAttestationResult} from given Builder
+     * @param builder Builder
+     */
     private KeyAttestationResult(KeyAttestationResult.Builder builder) {
         this.attestationType      = builder.attestationType;
         this.attestationSignature = builder.signature;
@@ -49,7 +53,10 @@ public class KeyAttestationResult {
 
     /**
      * Get MUSAP's opinion of the Key Attestation.
-     * This
+     *
+     * Note that client-side attestation may not be reliable.
+     * Therefore, it is recommended to verify the attestation data outside of MUSAP.
+     *
      * @return {@link AttestationStatus#VALID VALID}, {@link AttestationStatus#INVALID INVALID} or
      * {@link AttestationStatus#UNDETERMINED UNDETERMINED}
      */

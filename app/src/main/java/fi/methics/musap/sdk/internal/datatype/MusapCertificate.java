@@ -4,13 +4,17 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.X509Principal;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.Principal;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 import javax.security.auth.x500.X500Principal;
 
+import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapRDNStyle;
 
 /**
@@ -54,6 +58,15 @@ public class MusapCertificate {
         this.subject     = MusapRDNStyle.INSTANCE.toString(cert.getSubjectX500Principal());
         this.certificate = cert.getEncoded();
         this.publicKey   = new PublicKey(cert.getPublicKey().getEncoded());
+    }
+
+    /**
+     * Create a new MUSAP certificate from a raw byte[] certificate (e.g. {@link X509Certificate#getEncoded()}
+     * @param cert Certificate
+     * @throws CertificateEncodingException if the certificate could not be parsed
+     */
+    public MusapCertificate(byte[] cert) throws CertificateEncodingException {
+        this(bytesToCert(cert));
     }
 
     /**
@@ -119,6 +132,22 @@ public class MusapCertificate {
      */
     public PublicKey getPublicKey() {
         return this.publicKey;
+    }
+
+    /**
+     * Convert a byte[] to an {@link X509Certificate}
+     * @param cert Certificate as byte[]
+     * @return X509Certificate
+     * @throws CertificateEncodingException if conversion fails
+     */
+    private static X509Certificate bytesToCert(byte[] cert) throws CertificateEncodingException {
+        try (InputStream in = new ByteArrayInputStream(cert)) {
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            return (X509Certificate) certFactory.generateCertificate(in);
+        } catch (Exception e) {
+            MLog.d("Failed to parse byte[] certificate", e);
+            throw new CertificateEncodingException(e);
+        }
     }
 
 }

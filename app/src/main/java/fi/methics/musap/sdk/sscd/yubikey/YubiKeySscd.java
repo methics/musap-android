@@ -46,6 +46,8 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -83,6 +85,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
 
     private static final String SSCD_TYPE        = "Yubikey";
     private static final String ATTRIBUTE_SERIAL = "serial";
+    private static final String ATTRIBUTE_ATTEST = "YubikeyAttestationCert";
 
     private final YubiKeySettings settings = new YubiKeySettings();
 
@@ -100,7 +103,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     private SignatureReq sigReq;
 
     private final Context c;
-    private X509Certificate attestationCertificate;
+    private Map<String, byte[]> attestationCertificates = new HashMap<>();
 
     public YubiKeySscd(Context context) {
         this.managementKey = MANAGEMENT_KEY;
@@ -135,6 +138,14 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
 
+        MusapKey key = req.getKey();
+        if (key != null) {
+            // Fill the key attestation certificate if available
+            KeyAttribute attestCert = key.getAttribute(ATTRIBUTE_ATTEST);
+            if (attestCert != null) {
+                this.attestationCertificates.put(key.getKeyId(), attestCert.getValueBytes());
+            }
+        }
         this.signFuture = new CompletableFuture<>();
         this.sigReq = req;
         this.keyGenReq = null;
@@ -149,7 +160,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     
     @Override
     public KeyAttestation getKeyAttestation() {
-        return new YubiKeyAttestation(this.getAttestationCertificate());
+        return new YubiKeyAttestation(this.getAttestationCertificates());
     }
 
     private Activity getActivity() {
@@ -472,9 +483,13 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         keyBuilder.setKeyId(IdGenerator.generateKeyId());
         keyBuilder.setAlgorithm(req.getAlgorithm());
 
+        String keyId = IdGenerator.generateKeyId();
+        keyBuilder.setKeyId(keyId);
+
         try {
-            this.attestationCertificate = pivSession.attestKey(Slot.SIGNATURE);
-            keyBuilder.addAttribute(new KeyAttribute("YubiKeyAttestationCertificate", this.attestationCertificate));
+            X509Certificate attestationCertificate = pivSession.attestKey(Slot.SIGNATURE);
+            this.attestationCertificates.put(keyId, attestationCertificate.getEncoded());
+            keyBuilder.addAttribute(new KeyAttribute(ATTRIBUTE_ATTEST, attestationCertificate));
         } catch (Exception e) {
             MLog.d("Could not attest key", e);
         }
@@ -571,8 +586,8 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         }
     }
 
-    private X509Certificate getAttestationCertificate() {
-        return this.attestationCertificate;
+    private Map<String, byte[]> getAttestationCertificates() {
+        return this.attestationCertificates;
     }
 
 }

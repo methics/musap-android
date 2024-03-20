@@ -21,7 +21,7 @@ public interface MusapSscdInterface<T extends SscdSettings> {
      * @throws Exception if binding failed
      * @return
      */
-    public MusapKey bindKey(KeyBindReq req) throws Exception;
+    MusapKey bindKey(KeyBindReq req) throws Exception;
 
     /**
      * Generate a new key with this SSCD. Note that this SSCD must support
@@ -29,7 +29,7 @@ public interface MusapSscdInterface<T extends SscdSettings> {
      * @throws Exception if key generation failed
      * @return Recently generated MUSAPKey
      */
-    public MusapKey generateKey(KeyGenReq req) throws Exception;
+    MusapKey generateKey(KeyGenReq req) throws Exception;
 
     /**
      * Sign with the SSCD
@@ -37,19 +37,19 @@ public interface MusapSscdInterface<T extends SscdSettings> {
      * @return Signature response
      * @throws Exception if signature failed
      */
-    public MusapSignature sign(SignatureReq req) throws Exception;
+    MusapSignature sign(SignatureReq req) throws Exception;
 
     /**
      * Get SSCD info. Must not return null.
      * @return SSCD info
      */
-    public SscdInfo getSscdInfo();
+    SscdInfo getSscdInfo();
 
     /**
      * Get the associated key attestation mechanism
      * @return key attestation mechanism
      */
-    public default KeyAttestation getKeyAttestation() {
+    default KeyAttestation getKeyAttestation() {
         return new NoKeyAttestation();
     }
 
@@ -58,18 +58,22 @@ public interface MusapSscdInterface<T extends SscdSettings> {
      * @param key Key to attest
      * @return Key Attestation result
      */
-    public default KeyAttestationResult attestKey(MusapKey key) {
-        return this.getKeyAttestation().attest(key);
+    default KeyAttestationResult attestKey(MusapKey key) {
+        return this.getKeyAttestation().getAttestationData(key);
     }
 
     /**
      * Does this SSCD support key generation?
      * @return true if key generation is supported
      */
-    public default boolean isKeygenSupported() {
+    default boolean isKeygenSupported() {
         return this.getSscdInfo().isKeygenSupported();
     }
 
-    public T getSettings();
+    /**
+     * Get SSCD specific settings
+     * @return settings
+     */
+    T getSettings();
 
 }

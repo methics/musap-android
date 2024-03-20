@@ -25,4 +25,29 @@ public class KeyAttribute {
         }
     }
 
+    /**
+     * Get attribute name
+     * @return name
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Get attribute value
+     * @return value
+     */
+    public String getValue() {
+        return this.value;
+    }
+
+    /**
+     * Get attribute value as byte[]
+     * @return value or null
+     */
+    public byte[] getValueBytes() {
+        if (this.value == null) return null;
+        return Base64.decode(this.value, Base64.NO_WRAP);
+    }
+
 }
