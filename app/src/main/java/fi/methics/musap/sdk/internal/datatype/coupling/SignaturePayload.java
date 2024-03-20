@@ -4,6 +4,7 @@ import android.util.Base64;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import fi.methics.musap.sdk.api.MusapException;
@@ -18,11 +19,17 @@ import fi.methics.musap.sdk.internal.util.MLog;
 
 public class SignaturePayload {
 
+    public static final String DATA_FORMAT_BASE64 = "base64";
+    public static final String DATA_FORMAT_UTF8   = "utf-8";
+
     @SerializedName("mode")
     public String mode;
 
     @SerializedName("data")
     public String data;
+
+    @SerializedName("dataformat")
+    public String dataformat;
 
     @SerializedName("mimetype")
     public String mimetype;
@@ -66,6 +73,9 @@ public class SignaturePayload {
         @SerializedName("mimetype")
         public String mimetype;
 
+        @SerializedName("dataformat")
+        public String dataformat;
+
     }
 
     public static class KeyIdentifier {
@@ -103,8 +113,12 @@ public class SignaturePayload {
             signAlgo = new SignatureAlgorithm(this.scheme, this.hashalgo);
         }
 
+        byte[] dtbs = this.resolveDataToBeSigned(key);
+        if (dtbs == null) {
+            throw new MusapException(MusapException.ERROR_MISSING_PARAM, "Missing data to sign");
+        }
         return new SignatureReq.Builder(signAlgo)
-                .setData(Base64.decode(this.resolveDataToBeSigned(key), Base64.NO_WRAP))
+                .setData(dtbs)
                 .setFormat(format)
                 .setKey(key)
                 .setDisplayText(this.display)
@@ -116,12 +130,12 @@ public class SignaturePayload {
     /**
      * Chooses data to be signed. Request may contain multiple in some use cases, like document
      * signing.
-     * @param key
+     * @param key MUSAP key to help data choice. May be null if {@link #datachoice} is not used.
      * @return Data to be signed. Usually this is the value of the data element.
      */
-    private String resolveDataToBeSigned(MusapKey key) throws MusapException {
+    private byte[] resolveDataToBeSigned(MusapKey key) throws MusapException {
         if (this.datachoice == null || this.datachoice.isEmpty()) {
-            return this.data;
+            return this.formatDtbs(this.dataformat, this.data);
         }
 
         String keyId = key.getKeyId();
@@ -138,12 +152,26 @@ public class SignaturePayload {
 
             if (keyId.equalsIgnoreCase(dtbs.key.keyid)) {
                 MLog.d("Found matching data choice with " + keyId);
-                return dtbs.data;
+                return this.formatDtbs(dtbs.dataformat, dtbs.data);
             }
         }
 
         MLog.e("No datachoice for key ID " + key.getKeyId());
         throw new MusapException("No datachoice for key ID" + key.getKeyId());
+    }
+
+    /**
+     * Format given DTBS based on given DataFormat (utf-8 or base64)
+     * @param dataformat Data Format
+     * @param dtbs       Data to be signed (String)
+     * @return Formatted DTBS
+     */
+    private byte[] formatDtbs(String dataformat, String dtbs) {
+        if (dataformat == null || DATA_FORMAT_BASE64.equalsIgnoreCase(dataformat)) {
+            return Base64.decode(data, Base64.NO_WRAP);
+        }
+        // TODO: Support hex, other data formats
+        return data.getBytes(StandardCharsets.UTF_8);
     }
 
     /**
@@ -166,7 +194,7 @@ public class SignaturePayload {
 
     /**
      * Create a new {@link KeyGenReq} from this MUSAP Link payload
-     * @return {@link KeyGenReq}
+     * @return {@link KeyGenReq}A
      */
     public KeyGenReq toKeygenReq() {
         KeyGenReq.Builder builder = new KeyGenReq.Builder();

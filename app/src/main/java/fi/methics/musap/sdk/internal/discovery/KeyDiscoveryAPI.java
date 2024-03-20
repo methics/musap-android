@@ -30,7 +30,7 @@ public class KeyDiscoveryAPI {
 
     /**
      * Find MUSAP SSCDs that match given search criteria
-     * @param req SSCD search request
+     * @param req SSCD search request>
      * @return MUSAP SSCDs
      */
     public List<MusapSscdInterface> listMatchingSscds(SscdSearchReq req) {
