@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fi.methics.musap.sdk.api.MusapClient;
+import fi.methics.musap.sdk.attestation.NoKeyAttestation;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapSscd;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
 
 /**
  * MUSAP Key class.
@@ -112,8 +114,16 @@ public class MusapKey {
         return new KeyURI(this);
     }
 
+    /**
+     * Get the Key Attestation.
+     * @return Key Attestation. Returns {@link NoKeyAttestation} if none explicitly defined by the SSCD.
+     */
     public KeyAttestation getAttestation() {
-        return this.attestation;
+        if (this.attestation == null) {
+            return new NoKeyAttestation(this);
+        } else {
+            return this.attestation;
+        }
     }
 
     public List<KeyAttribute> getAttributes() {
