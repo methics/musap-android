@@ -1,6 +1,5 @@
 package fi.methics.musap.sdk.internal.discovery;
 
-import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.KeyURI;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.SscdInfo;
@@ -49,7 +48,7 @@ public class KeySearchReq {
     public boolean matches(MusapKey key) {
         if (this.keyAlgorithm != null && !this.keyAlgorithm.equals(key.getAlgorithm())) return false;
         if (this.keyUri       != null && !new KeyURI(this.keyUri).matches(key.getKeyUri())) return false;
-        MusapSscd iface = key.getSscdImpl();
+        MusapSscd iface = key.getSscd();
         if (iface != null) {
             SscdInfo sscd = iface.getSscdInfo();
             if (sscd != null) {

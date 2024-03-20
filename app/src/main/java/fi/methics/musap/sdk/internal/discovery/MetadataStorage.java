@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import fi.methics.musap.sdk.api.MusapClient;
-import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.SscdInfo;
@@ -239,8 +238,8 @@ public class MetadataStorage {
             // Avoid duplicate keys
             if (activeKeys.stream().anyMatch(k -> k.getKeyUri().equals(k.getKeyUri()))) continue;
 
-            if (key.getSscdImpl() != null) {
-                this.addKey(key, key.getSscdImpl().getSscdInfo());
+            if (key.getSscd() != null) {
+                this.addKey(key, key.getSscd().getSscdInfo());
             }
         }
     }

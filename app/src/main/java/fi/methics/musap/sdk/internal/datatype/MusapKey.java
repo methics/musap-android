@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fi.methics.musap.sdk.api.MusapClient;
-import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapSscd;
@@ -192,7 +191,7 @@ public class MusapKey {
      * Get a handle to the SSCD implementation that created this MUSAP key
      * @return SSCD
      */
-    public MusapSscd getSscdImpl() {
+    public MusapSscd getSscd() {
         if (this.sscdType == null) {
             MLog.d("No SSCD Type found");
             return null;
@@ -207,14 +206,13 @@ public class MusapKey {
                     MLog.d("Found SSCD with type " + this.sscdType);
                     return sscd;
                 } else if (this.sscdId.equals(sscdId)) {
-//                } else if (this.sscdId.equals(sscdInfo.getSscdId())) {
                     MLog.d("Found SSCD with type " + this.sscdType + " and id " + this.sscdId);
                     return sscd;
                 } else {
-                    MLog.d("Unknown SSCD ID " + this.sscdId + " / " + sscdInfo.getSscdId());
+                    MLog.d("SSCD ID " + sscdInfo.getSscdId() + " does not match our SSCD ID " + this.sscdId);
                 }
             } else {
-                MLog.d("SSCD " + sscd.getSscdInfo().getSscdType() + " does not match " + this.sscdType);
+                MLog.d("SSCD type " + sscd.getSscdInfo().getSscdType() + " does not match our SSCD type " + this.sscdType);
             }
         }
         MLog.d("Could not find SSCD implementation for key " + this.keyId);
@@ -226,7 +224,7 @@ public class MusapKey {
      * @return SSCD
      */
     public SscdInfo getSscdInfo() {
-        MusapSscd sscd = this.getSscdImpl();
+        MusapSscd sscd = this.getSscd();
         if (sscd == null) return null;
         return sscd.getSscdInfo();
     }
