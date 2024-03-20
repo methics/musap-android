@@ -167,8 +167,9 @@ public class SignaturePayload {
      * @return Formatted DTBS
      */
     private byte[] formatDtbs(String dataformat, String dtbs) {
+        if (dtbs == null) return null;
         if (dataformat == null || DATA_FORMAT_BASE64.equalsIgnoreCase(dataformat)) {
-            return Base64.decode(data, Base64.NO_WRAP);
+            return Base64.decode(dtbs, Base64.NO_WRAP);
         }
         // TODO: Support hex, other data formats
         return data.getBytes(StandardCharsets.UTF_8);
