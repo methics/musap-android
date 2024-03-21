@@ -135,6 +135,15 @@ public class MusapCertificate {
     }
 
     /**
+     * Get the certificate as {@link X509Certificate}
+     * @return X509Certificate
+     * @throws CertificateEncodingException if encoding somehow fails
+     */
+    public X509Certificate getX509Certificate() throws CertificateEncodingException {
+        return bytesToCert(this.certificate);
+    }
+
+    /**
      * Convert a byte[] to an {@link X509Certificate}
      * @param cert Certificate as byte[]
      * @return X509Certificate

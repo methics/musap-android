@@ -57,8 +57,7 @@ public class KeyAttestationResult {
      * Note that client-side attestation may not be reliable.
      * Therefore, it is recommended to verify the attestation data outside of MUSAP.
      *
-     * @return {@link AttestationStatus#VALID VALID}, {@link AttestationStatus#INVALID INVALID} or
-     * {@link AttestationStatus#UNDETERMINED UNDETERMINED}
+     * @return {@link AttestationStatus#INVALID INVALID} or {@link AttestationStatus#UNDETERMINED UNDETERMINED}
      */
     public AttestationStatus getAttestationStatus() {
         return this.attestationStatus;

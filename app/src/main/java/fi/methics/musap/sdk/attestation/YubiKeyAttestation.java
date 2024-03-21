@@ -1,9 +1,7 @@
 package fi.methics.musap.sdk.attestation;
 
-import org.bouncycastle.jcajce.provider.asymmetric.X509;
-
-import java.security.cert.X509Certificate;
 import java.util.Map;
+import java.util.UUID;
 
 import fi.methics.musap.sdk.attestation.KeyAttestationResult.AttestationStatus;
 import fi.methics.musap.sdk.internal.datatype.MusapCertificate;
@@ -16,6 +14,7 @@ import fi.methics.musap.sdk.internal.util.MLog;
 public class YubiKeyAttestation extends KeyAttestation {
 
     private Map<String, byte[]> certificates;
+    private String aaguid;
 
     /**
      * Create a new YubiKey attestation object
@@ -32,7 +31,23 @@ public class YubiKeyAttestation extends KeyAttestation {
         if (key == null) {
             return builder.setAttestationStatus(AttestationStatus.INVALID).build();
         }
-        return builder.setAttestationStatus(AttestationStatus.UNDETERMINED).setCertificate(this.getCertificate(key.getKeyId())).build();
+
+        MusapCertificate cert = this.getCertificate(key.getKeyId());
+        if (cert != null) {
+            try {
+                byte[] aaguid = cert.getX509Certificate().getExtensionValue("1.3.6.1.4.1.45724.1.1.4");
+                if (aaguid != null) {
+                    this.aaguid = UUID.nameUUIDFromBytes(aaguid).toString();
+                }
+            } catch (Exception e) {
+                MLog.d("Failed to resolve AAGUID", e);
+            }
+        }
+
+        return builder.setAttestationStatus(AttestationStatus.UNDETERMINED)
+                .setCertificate(this.getCertificate(key.getKeyId()))
+                .setAAGUID(this.aaguid)
+                .build();
     }
 
     @Override
