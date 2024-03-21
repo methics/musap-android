@@ -24,7 +24,7 @@ public class CertificateKeyAttestation extends KeyAttestation {
         }
         builder.setCertificateChain(chain);
         builder.setCertificate(key.getCertificate());
-        return builder.setAttestationStatus(this.getSuccessStatus()).build();
+        return builder.setAttestationStatus(AttestationStatus.UNDETERMINED).build();
     }
 
     @Override
@@ -32,17 +32,4 @@ public class CertificateKeyAttestation extends KeyAttestation {
         return "Certificate";
     }
 
-    /**
-     * What {@link AttestationStatus} to return when attestation is deemed successful?
-     * By default the {@link CertificateKeyAttestation} returns {@link AttestationStatus#UNDETERMINED UNDETERMINED}
-     * because the credibility of the certificate chain depends on the SSCD.
-     * <p>
-     *     This method should be overridden by extending classes if another status is wanted.
-     * </p>
-     * @return Attestation status
-     */
-    protected AttestationStatus getSuccessStatus() {
-        return AttestationStatus.UNDETERMINED;
-    }
-    
 }

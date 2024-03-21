@@ -32,12 +32,7 @@ public class YubiKeyAttestation extends KeyAttestation {
         if (key == null) {
             return builder.setAttestationStatus(AttestationStatus.INVALID).build();
         }
-        MusapCertificate attestationCertificate = this.getCertificate(key.getKeyId());
-        if (attestationCertificate == null) {
-            return builder.setAttestationStatus(AttestationStatus.UNDETERMINED).build();
-        }
-        // TODO: Attest this.certificate
-        return builder.setAttestationStatus(AttestationStatus.VALID).setCertificate(attestationCertificate).build();
+        return builder.setAttestationStatus(AttestationStatus.UNDETERMINED).setCertificate(this.getCertificate(key.getKeyId())).build();
     }
 
     @Override

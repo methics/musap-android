@@ -1,6 +1,8 @@
 package fi.methics.musap.sdk.internal.datatype;
 
+import fi.methics.musap.sdk.attestation.KeyAttestationResult;
 import fi.methics.musap.sdk.internal.util.MBase64;
+import fi.methics.musap.sdk.internal.util.MusapSscd;
 
 /**
  * MUSAP Signature class. This contains the raw signature and various signature details like
@@ -12,6 +14,7 @@ public class MusapSignature {
     private MusapKey key;
     private SignatureAlgorithm algorithm;
     private SignatureFormat format;
+    private KeyAttestationResult attestationData;
 
     /**
      * Create a new MUSAP Signature object
@@ -29,6 +32,14 @@ public class MusapSignature {
         this.key          = key;
         this.algorithm    = algorithm;
         this.format       = format;
+
+        // Resolve attestation data
+        if (this.key != null) {
+            MusapSscd sscd = this.key.getSscd();
+            if (sscd != null) {
+                this.attestationData = sscd.getKeyAttestation().getAttestationData(this.key);
+            }
+        }
     }
 
     /**
@@ -104,6 +115,14 @@ public class MusapSignature {
      */
     public String getB64Signature() {
         return MBase64.toBase64String(this.rawSignature);
+    }
+
+    /**
+     * Get Key Attestation result related to this signature
+     * @return Key Attestation result (may be null)
+     */
+    public KeyAttestationResult getKeyAttestationResult() {
+        return this.attestationData;
     }
 
 }

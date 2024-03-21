@@ -244,7 +244,6 @@ public class MusapLink {
         }
     }
 
-
     /**
      * Poll for a signature request
      * This performs networking operations.
@@ -297,6 +296,7 @@ public class MusapLink {
      *
      * @param key MusapKey
      * @param transId transaction id
+     * @see #poll()
      * @throws IOException
      */
     public void sendKeygenCallback(MusapKey key, String transId) throws IOException {
@@ -335,11 +335,13 @@ public class MusapLink {
      *
      * @param signature MusapSignature
      * @param transId transaction id
+     * @see #poll()
      * @throws IOException
      */
     public void sendSignatureCallback(MusapSignature signature, String transId) throws IOException {
 
         SignatureCallbackPayload payload = new SignatureCallbackPayload(signature);
+        payload.attestationResult = signature.getKeyAttestationResult();
 
         MusapMessage msg = new MusapMessage();
         msg.type = SIG_CALLBACK_MSG_TYPE;

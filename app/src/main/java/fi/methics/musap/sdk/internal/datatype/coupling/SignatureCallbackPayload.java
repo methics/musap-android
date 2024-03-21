@@ -7,6 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.nio.charset.StandardCharsets;
 
+import fi.methics.musap.sdk.attestation.KeyAttestationResult;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.datatype.PublicKey;
@@ -25,6 +26,9 @@ public class SignatureCallbackPayload {
 
     @SerializedName("keyid")
     public String keyid;
+
+    @SerializedName("attestation")
+    public KeyAttestationResult attestationResult;
 
     public SignatureCallbackPayload(MusapKey key) {
         if (key != null) {

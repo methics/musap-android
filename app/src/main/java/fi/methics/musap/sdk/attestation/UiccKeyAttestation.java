@@ -12,9 +12,4 @@ public class UiccKeyAttestation extends CertificateKeyAttestation {
         return "UICC";
     }
 
-    @Override
-    protected KeyAttestationResult.AttestationStatus getSuccessStatus() {
-        return KeyAttestationResult.AttestationStatus.VALID;
-    }
-
 }

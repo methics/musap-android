@@ -20,22 +20,22 @@ public class KeyAttestationResult {
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
 
-    @SerializedName("AttestationType")
+    @SerializedName("attestation_type")
     private String attestationType;
 
-    @SerializedName("AttestationSignature")
+    @SerializedName("attestation_signature")
     private byte[] attestationSignature;
 
-    @SerializedName("Certificate")
+    @SerializedName("attestation_certificate")
     private MusapCertificate certificate;
 
-    @SerializedName("CertificateChain")
+    @SerializedName("certificate_chain")
     private List<MusapCertificate> certificateChain;
 
-    @SerializedName("AAGUID")
+    @SerializedName("aaguid")
     private String aaguid;
 
-    @SerializedName("AttestationStatus")
+    @SerializedName("attestation_status")
     private AttestationStatus attestationStatus;
 
     /**
@@ -107,9 +107,11 @@ public class KeyAttestationResult {
 
     /**
      * Attestation status that tells MUSAP's opinion of the attestation data.
+     * This will always be either INVALID or UNDETERMINED, as MUSAP can only
+     * check whether the data is INVALID or not. The remaining attestation should
+     * be done by an external party.
      */
     public enum AttestationStatus {
-        VALID,
         INVALID,
         UNDETERMINED
     }
