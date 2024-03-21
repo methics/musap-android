@@ -160,7 +160,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     
     @Override
     public KeyAttestation getKeyAttestation() {
-        return new YubiKeyAttestation(this.getAttestationCertificates());
+        return new YubiKeyAttestation(this.attestationCertificates);
     }
 
     private Activity getActivity() {
@@ -584,10 +584,6 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         if (this.signFuture != null) {
             this.signFuture.complete(new SigningResult(new MusapException("Cancel")));
         }
-    }
-
-    private Map<String, byte[]> getAttestationCertificates() {
-        return this.attestationCertificates;
     }
 
 }

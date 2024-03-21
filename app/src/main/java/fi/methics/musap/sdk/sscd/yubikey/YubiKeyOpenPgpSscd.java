@@ -17,6 +17,7 @@ import com.yubico.yubikit.openpgp.KeyRef;
 import com.yubico.yubikit.openpgp.OpenPgpCurve;
 import com.yubico.yubikit.openpgp.OpenPgpSession;
 import com.yubico.yubikit.piv.ManagementKeyType;
+import com.yubico.yubikit.piv.Slot;
 
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -37,11 +38,16 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import fi.methics.musap.sdk.api.MusapException;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
+import fi.methics.musap.sdk.attestation.YubiKeyAttestation;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
+import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapCertificate;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
@@ -67,6 +73,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
     private static final String SSCD_TYPE        = "YubikeyEddsa";
     private static final String ATTRIBUTE_SERIAL = "SerialNumber";
+    private static final String ATTRIBUTE_ATTEST = "YubikeyAttestationCert";
 
     private YubiKeySettings settings = new YubiKeySettings();
 
@@ -87,6 +94,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
     private KeyRef slot = KeyRef.SIG;
 
     private final Context c;
+    private Map<String, byte[]> attestationCertificates = new HashMap<>();
 
     public YubiKeyOpenPgpSscd(Context context) {
         this.managementKey = MANAGEMENT_KEY;
@@ -120,6 +128,15 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
+
+        MusapKey key = req.getKey();
+        if (key != null) {
+            // Fill the key attestation certificate if available
+            KeyAttribute attestCert = key.getAttribute(ATTRIBUTE_ATTEST);
+            if (attestCert != null) {
+                this.attestationCertificates.put(key.getKeyId(), attestCert.getValueBytes());
+            }
+        }
 
         this.signFuture = new CompletableFuture<>();
         this.sigReq = req;
@@ -332,6 +349,11 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         return settings;
     }
 
+    @Override
+    public KeyAttestation getKeyAttestation() {
+        return new YubiKeyAttestation(this.attestationCertificates);
+    }
+
     private void connect(final NfcYubiKeyDevice device, final KeyGenReq req, String pin)  {
 
         device.requestConnection(SmartCardConnection.class, result -> {
@@ -463,6 +485,17 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
         keyBuilder.setLoa(Arrays.asList(MusapLoA.EIDAS_SUBSTANTIAL, MusapLoA.ISO_LOA3));
         keyBuilder.setKeyId(IdGenerator.generateKeyId());
         keyBuilder.setAlgorithm(req.getAlgorithm());
+
+        String keyId = IdGenerator.generateKeyId();
+        keyBuilder.setKeyId(keyId);
+
+        try {
+            X509Certificate attestationCertificate = openpgp.attestKey(KeyRef.SIG);
+            this.attestationCertificates.put(keyId, attestationCertificate.getEncoded());
+            keyBuilder.addAttribute(new KeyAttribute(ATTRIBUTE_ATTEST, attestationCertificate));
+        } catch (Exception e) {
+            MLog.d("Could not attest key", e);
+        }
 
         this.keygenFuture.complete(new KeyGenerationResult(keyBuilder.build()));
 
