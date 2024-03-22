@@ -33,8 +33,6 @@ public class MusapKey {
     private String did;
     private String state;
 
-    private KeyAttestation attestation;
-
     private MusapKey(Builder builder) {
         this.keyAlias         = builder.keyAlias;
         this.keyType          = builder.keyType;
@@ -47,89 +45,148 @@ public class MusapKey {
         this.keyUsages        = builder.keyUsages;
         this.loa              = builder.loa;
         this.algorithm        = builder.algorithm;
-        this.attestation      = builder.attestation;
         this.attributes       = builder.attributes;
         this.createdDate      = Instant.now();
     }
 
+    /**
+     * Set the SSCD ID associated with this key.
+     * This should be set in the {@link Builder}, but in some cases it's important to be able to
+     * change the value later.
+     * @param sscdId ID of the SSCD
+     */
     public void setSscdId(String sscdId) {
         this.sscdId = sscdId;
     }
 
+    /**
+     * Get the Key ID associated with this key
+     * @return Key ID
+     */
     public String getKeyId() {
         return keyId;
     }
 
+    /**
+     * Set the Key ID for this key
+     * @param keyId Key ID
+     */
     public void setKeyId(String keyId) {
         this.keyId = keyId;
     }
 
+    /**
+     * Get the key alias of this key
+     * <p>
+     *     Key alias is typically given by the user to help them identify the key.
+     * </p>
+     * @return Key alias
+     */
     public String getKeyAlias() {
         return keyAlias;
     }
 
+    /**
+     * Get the key type
+     * @return key type
+     */
     public String getKeyType() {
         return keyType;
     }
 
+    /**
+     * Get the SSCD ID associated with this key
+     * @return SSCD ID
+     */
     public String getSscdId() {
         return sscdId;
     }
 
+    /**
+     * Get the SSCD type associated with this key
+     * @return SSCD type. Example: "YubiKey"
+     */
     public String getSscdType() {
         return sscdType;
     }
 
+    /**
+     * Get creation date of this key (in MUSAP)
+     * @return Creation date
+     */
     public Instant getCreatedDate() {
         return createdDate;
     }
 
+    /**
+     * Get the public key associated with this key
+     * @return Public key
+     */
     public PublicKey getPublicKey() {
         return publicKey;
     }
 
+    /**
+     * Get the certificate associated with this key
+     * @return certificate (may be null)
+     */
     public MusapCertificate getCertificate() {
         return certificate;
     }
 
+    /**
+     * Get the certificate chain associated with this key
+     * @return certificate chain (may be null or empty)
+     */
     public List<MusapCertificate> getCertificateChain() {
         return certificateChain;
     }
 
+    /**
+     * Get a list of KeyUsages associated with this key
+     * @return KeyUsages (e.g. "digitalSignature")
+     */
     public List<String> getKeyUsages() {
         return keyUsages;
     }
 
+    /**
+     * Get associated Level of Assurance (LoA)
+     * @return LoA
+     */
     public List<MusapLoA> getLoa() {
         return loa;
     }
 
+    /**
+     * Get the Key Algorithm
+     * @return Key Algorithm (e.g. "secp256k1")
+     */
     public KeyAlgorithm getAlgorithm() {
         return this.algorithm;
     }
 
+    /**
+     * Get the KeyURI
+     * @return KeyURI
+     */
     public KeyURI getKeyUri() {
         return new KeyURI(this);
     }
 
-    public KeyAttestation getAttestation() {
-        return this.attestation;
-    }
-
+    /**
+     * Get all extra attributes related to this key
+     * @return attributes
+     */
     public List<KeyAttribute> getAttributes() {
         return this.attributes;
     }
 
-    public String getKeyAttribute(String name) {
-        if (name == null) return null;
-        if (this.attributes == null) return null;
-        for (KeyAttribute attr : this.attributes) {
-            if (attr == null) continue;
-            if (name.equals(attr.name)) return attr.value;
-        }
-        return null;
-    }
-
+    /**
+     * Get a specific attribute related to this key
+     * @param name Attribute name (e.g. "msisdn")
+     * @return KeyAttribute object
+     */
     public KeyAttribute getAttribute(String name) {
         if (name == null) return null;
         return this.attributes.stream().filter(n -> name.equals(n.name)).findFirst().orElse(null);
@@ -151,6 +208,10 @@ public class MusapKey {
         this.attributes.add(attr);
     }
 
+    /**
+     * Remove an attribute from this key
+     * @param name Attribute name
+     */
     public void removeAttribute(String name) {
         MLog.d("Removing attribute " + name);
         if (name == null) return;
@@ -229,14 +290,26 @@ public class MusapKey {
         return sscd.getSscdInfo();
     }
 
+    /**
+     * Set key alias
+     * @param alias key alias
+     */
     public void setAlias(String alias) {
         this.keyAlias = alias;
     }
 
+    /**
+     * Set DID
+     * @param did DID
+     */
     public void setDid(String did) {
         this.did = did;
     }
 
+    /**
+     * Set key State
+     * @param state key state
+     */
     public void setState(String state) {
         this.state = state;
     }
@@ -254,8 +327,6 @@ public class MusapKey {
         private List<String> keyUsages;
         private List<MusapLoA> loa;
         private KeyAlgorithm algorithm;
-
-        private KeyAttestation attestation;
 
         public Builder setKeyAlias(String keyAlias) {
             this.keyAlias = keyAlias;
@@ -318,11 +389,6 @@ public class MusapKey {
 
         public Builder setKeyId(String keyId) {
             this.keyId = keyId;
-            return this;
-        }
-
-        public Builder setAttestation(KeyAttestation attestation) {
-            this.attestation = attestation;
             return this;
         }
 

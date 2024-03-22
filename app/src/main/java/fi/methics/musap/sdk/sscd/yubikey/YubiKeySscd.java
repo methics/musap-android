@@ -3,6 +3,7 @@ package fi.methics.musap.sdk.sscd.yubikey;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -45,12 +46,17 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
 import fi.methics.musap.sdk.api.MusapException;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
+import fi.methics.musap.sdk.attestation.YubiKeyAttestation;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
+import fi.methics.musap.sdk.internal.datatype.KeyAttribute;
 import fi.methics.musap.sdk.internal.datatype.MusapCertificate;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.MusapLoA;
@@ -66,6 +72,10 @@ import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.SigningResult;
 import fi.methics.musapsdk.R;
 
+/**
+ * YubiKey SSCD that allows user to generate keys and sign with one or more YubiKey dongles
+ * over NFC.
+ */
 // TODO: When user dismisses any dialog, this will leave hanging forever.
 //       When user cancels a dialog. signing should fail.
 public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
@@ -75,6 +85,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
 
     private static final String SSCD_TYPE        = "Yubikey";
     private static final String ATTRIBUTE_SERIAL = "serial";
+    private static final String ATTRIBUTE_ATTEST = "YubikeyAttestationCert";
 
     private final YubiKeySettings settings = new YubiKeySettings();
 
@@ -92,6 +103,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     private SignatureReq sigReq;
 
     private final Context c;
+    private Map<String, byte[]> attestationCertificates = new HashMap<>();
 
     public YubiKeySscd(Context context) {
         this.managementKey = MANAGEMENT_KEY;
@@ -126,6 +138,14 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
 
+        MusapKey key = req.getKey();
+        if (key != null) {
+            // Fill the key attestation certificate if available
+            KeyAttribute attestCert = key.getAttribute(ATTRIBUTE_ATTEST);
+            if (attestCert != null) {
+                this.attestationCertificates.put(key.getKeyId(), attestCert.getValueBytes());
+            }
+        }
         this.signFuture = new CompletableFuture<>();
         this.sigReq = req;
         this.keyGenReq = null;
@@ -136,6 +156,11 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         if (result.exception != null) throw  result.exception;
 
         throw new MusapException("Signing failed");
+    }
+    
+    @Override
+    public KeyAttestation getKeyAttestation() {
+        return new YubiKeyAttestation(this.attestationCertificates);
     }
 
     private Activity getActivity() {
@@ -401,7 +426,6 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         KeyPair keyPair = ecKpg.generateKeyPair();
 
         MLog.d("Generated KeyPair");
-
         MLog.d("PublicKey=" + keyPair.getPublic().toString());
 
         X500Name name = new X500Name("CN=MUSAP Test");
@@ -459,10 +483,19 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         keyBuilder.setKeyId(IdGenerator.generateKeyId());
         keyBuilder.setAlgorithm(req.getAlgorithm());
 
+        String keyId = IdGenerator.generateKeyId();
+        keyBuilder.setKeyId(keyId);
+
+        try {
+            X509Certificate attestationCertificate = pivSession.attestKey(Slot.SIGNATURE);
+            this.attestationCertificates.put(keyId, attestationCertificate.getEncoded());
+            keyBuilder.addAttribute(new KeyAttribute(ATTRIBUTE_ATTEST, attestationCertificate));
+        } catch (Exception e) {
+            MLog.d("Could not attest key", e);
+        }
+
         this.keygenFuture.complete(new KeyGenerationResult(keyBuilder.build()));
-
         MLog.d("Put certificate to slot");
-
         showRemoveYubiKeyDialog(req.getActivity());
     }
 
@@ -474,7 +507,6 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
             PivSession pivSession = new PivSession(connection);
 
             pivSession.authenticate(this.type, this.managementKey);
-
             Slot slot = Slot.SIGNATURE;
 
             PivProvider pivProvider = new PivProvider(pivSession);
@@ -545,7 +577,10 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         return c.getTime();
     }
 
-    private void cancelSignature() {
+    /**
+     * Cancel the currently ongoing signature transaction
+     */
+    public void cancelSignature() {
         if (this.signFuture != null) {
             this.signFuture.complete(new SigningResult(new MusapException("Cancel")));
         }

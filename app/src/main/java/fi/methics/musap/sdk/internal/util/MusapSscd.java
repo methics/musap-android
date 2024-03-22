@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fi.methics.musap.sdk.api.MusapClient;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.extension.SscdSettings;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
@@ -76,6 +77,14 @@ public class MusapSscd {
      */
     public SscdSettings getSettings() {
         return this.impl.getSettings();
+    }
+
+    /**
+     * Get the associated key attestation mechanism
+     * @return key attestation mechanism
+     */
+    public KeyAttestation getKeyAttestation() {
+        return this.impl.getKeyAttestation();
     }
 
     /**

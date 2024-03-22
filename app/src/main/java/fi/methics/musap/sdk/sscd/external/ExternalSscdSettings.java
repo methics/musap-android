@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fi.methics.musap.sdk.api.MusapClient;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
+import fi.methics.musap.sdk.attestation.UiccKeyAttestation;
 import fi.methics.musap.sdk.extension.SscdSettings;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
 
