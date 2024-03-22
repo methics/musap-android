@@ -11,6 +11,10 @@ import fi.methics.musap.sdk.attestation.KeyAttestationResult.AttestationStatus;
  */
 public class CertificateKeyAttestation extends KeyAttestation {
 
+    public CertificateKeyAttestation() {
+        super(KeyAttestationType.CERTIFICATE);
+    }
+
     @Override
     public KeyAttestationResult getAttestationData(MusapKey key) {
 
@@ -29,7 +33,7 @@ public class CertificateKeyAttestation extends KeyAttestation {
 
     @Override
     public String getAttestationType() {
-        return "Certificate";
+        return this.keyAttestationType;
     }
 
 }

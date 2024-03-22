@@ -1,7 +1,6 @@
 package fi.methics.musap.sdk.attestation;
 
 import java.util.Map;
-import java.util.UUID;
 
 import fi.methics.musap.sdk.attestation.KeyAttestationResult.AttestationStatus;
 import fi.methics.musap.sdk.internal.datatype.MusapCertificate;
@@ -20,6 +19,7 @@ public class YubiKeyAttestation extends KeyAttestation {
      * @param certificates Map of KeyID to attestation X509Certificate
      */
     public YubiKeyAttestation(Map<String, byte[]> certificates) {
+        super(KeyAttestationType.CERTIFICATE);
         this.certificates = certificates;
     }
 
@@ -38,7 +38,7 @@ public class YubiKeyAttestation extends KeyAttestation {
 
     @Override
     public String getAttestationType() {
-        return "Yubikey";
+        return this.keyAttestationType;
     }
 
     /**

@@ -1,5 +1,7 @@
 package fi.methics.musap.sdk.attestation;
 
+import java.security.Key;
+
 /**
  * UICC specific certificate-based key attestation.
  * This assumes that the MNO and CA have performed registration operations that verify
@@ -9,7 +11,7 @@ public class UiccKeyAttestation extends CertificateKeyAttestation {
 
     @Override
     public String getAttestationType() {
-        return "UICC";
+        return KeyAttestationType.UICC;
     }
 
 }

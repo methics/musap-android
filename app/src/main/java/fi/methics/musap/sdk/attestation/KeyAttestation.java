@@ -7,6 +7,12 @@ import fi.methics.musap.sdk.internal.datatype.MusapKey;
  */
 public abstract class KeyAttestation {
 
+    protected final String keyAttestationType;
+
+    protected KeyAttestation(String keyAttestationType) {
+        this.keyAttestationType = keyAttestationType;
+    }
+
     /**
      * Attest the given key
      * @param key MUSAP key
