@@ -32,8 +32,6 @@ public class KeyAttestationResult {
     @SerializedName("certificate_chain")
     private List<MusapCertificate> certificateChain;
 
-    @SerializedName("aaguid")
-    private String aaguid;
 
     @SerializedName("attestation_status")
     private AttestationStatus attestationStatus;
@@ -48,7 +46,6 @@ public class KeyAttestationResult {
         this.attestationStatus    = builder.attestationStatus;
         this.certificate          = builder.certificate;
         this.certificateChain     = builder.certificateChain;
-        this.aaguid               = builder.aaguid;
     }
 
     /**
@@ -87,13 +84,6 @@ public class KeyAttestationResult {
         return this.certificate;
     }
 
-    /**
-     * Get AAGUID related to the attestation. Only relevant with mechanisms that use AAGUID.
-     * @return AAGUID if available
-     */
-    public String getAaguid() {
-        return this.aaguid;
-    }
 
     /**
      * Convert this attestation result to a JSON object.
@@ -121,7 +111,6 @@ public class KeyAttestationResult {
         private byte[] signature;
         private MusapCertificate certificate;
         private List<MusapCertificate> certificateChain;
-        private String aaguid;
         private AttestationStatus attestationStatus = AttestationStatus.UNDETERMINED;
 
         /**
@@ -152,10 +141,7 @@ public class KeyAttestationResult {
             this.certificateChain = certificateChain;
             return this;
         }
-        public Builder setAAGUID(String aaguid) {
-            this.aaguid = aaguid;
-            return this;
-        }
+
         public Builder setAttestationStatus(AttestationStatus status) {
             this.attestationStatus = status;
             return this;

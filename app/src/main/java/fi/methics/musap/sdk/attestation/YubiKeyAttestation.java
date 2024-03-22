@@ -14,7 +14,6 @@ import fi.methics.musap.sdk.internal.util.MLog;
 public class YubiKeyAttestation extends KeyAttestation {
 
     private Map<String, byte[]> certificates;
-    private String aaguid;
 
     /**
      * Create a new YubiKey attestation object
@@ -32,21 +31,8 @@ public class YubiKeyAttestation extends KeyAttestation {
             return builder.setAttestationStatus(AttestationStatus.INVALID).build();
         }
 
-        MusapCertificate cert = this.getCertificate(key.getKeyId());
-        if (cert != null) {
-            try {
-                byte[] aaguid = cert.getX509Certificate().getExtensionValue("1.3.6.1.4.1.45724.1.1.4");
-                if (aaguid != null) {
-                    this.aaguid = UUID.nameUUIDFromBytes(aaguid).toString();
-                }
-            } catch (Exception e) {
-                MLog.d("Failed to resolve AAGUID", e);
-            }
-        }
-
         return builder.setAttestationStatus(AttestationStatus.UNDETERMINED)
                 .setCertificate(this.getCertificate(key.getKeyId()))
-                .setAAGUID(this.aaguid)
                 .build();
     }
 
