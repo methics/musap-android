@@ -1,8 +1,11 @@
 package fi.methics.musap.sdk.internal.datatype;
 
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import fi.methics.musap.sdk.internal.util.MLog;
 
@@ -55,6 +58,10 @@ public class KeyURI {
         this.keyUriMap = this.parseUri(keyURI);
     }
 
+    private KeyURI(Map<String, String> params) {
+        this.keyUriMap = params;
+    }
+
     /**
      * Parse a KeyURI
      * @param keyURI
@@ -100,6 +107,30 @@ public class KeyURI {
     }
 
 
+    /**
+     * Get this URI in a display format with only requested params
+     * If no params are given, returns the whole URI
+     * @param params Which params the display form URI should contain
+     * @return
+     */
+    public String getDisplayString(String... params) {
+        if (params == null || params.length == 0) {
+            return this.getUri();
+        }
+
+        Map<String, String> subParams = new HashMap<>();
+
+        for (String param: params) {
+            if (param == null) {
+                continue;
+            }
+            if (this.keyUriMap.containsKey(param)) {
+                subParams.put(param, this.keyUriMap.get(param));
+            }
+        }
+
+        return new KeyURI(subParams).getUri();
+    }
 
     /**
      * Get a String representation of this KeyURI (the actual URI)
@@ -127,6 +158,53 @@ public class KeyURI {
         if (this.equals(keyUri)) return true;
         if (this.getUri().equals(keyUri.getUri())) return true;
         return false;
+    }
+
+    /**
+     * Check if this KeyURI is a partial match of another KeyURI.
+     * Partial match is defined as
+     * 1. This KeyURI has all parameters of the given KeyURI
+     * 2. For matching parameters, the parameter value of this KeyURI contains
+     *    all comma-separated values of the given KeyURI.
+     * For example, if this KeyURI is keyuri:key?algorithm:rsa2k&sscd=SIM,
+     * and parameters KeyURI is keyuri:key?algorithm:rsa2k, this is a partial match
+     * @param keyURI
+     * @return
+     */
+    public boolean isPartialMatch(KeyURI keyURI) {
+        for (Map.Entry<String, String> param : keyURI.getAsMap().entrySet()) {
+            if (!this.keyUriMap.containsKey(param.getKey())) {
+                MLog.d("This KeyURI does not have param " + param.getKey());
+                return false;
+            } else {
+                String thisValue = this.keyUriMap.get(param.getKey());
+                String givenValue = param.getValue();
+                if (!this.areParamsPartialMatch(thisValue, givenValue)) {
+                    MLog.d(String.format("Param %s is not a partial match with %s", thisValue, givenValue));
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
+    private boolean areParamsPartialMatch(String thisParam, String searchParam) {
+        // TODO: How are nulls matched? Can these even be null?
+        String[] thisArr = thisParam.split(",");
+        String[] searchArr = searchParam.split(",");
+
+        Set<String> thisSet = new HashSet<>(Arrays.asList(thisArr));
+        Set<String> searchSet = new HashSet<>(Arrays.asList(searchArr));
+
+        // Check if the sets are equal
+        return thisSet.containsAll(searchSet);
+    }
+
+    private boolean areParamsExactMatch(String[] thisArr, String[] searchArr) {
+        Set<String> set1 = new HashSet<>(Arrays.asList(thisArr));
+        Set<String> set2 = new HashSet<>(Arrays.asList(searchArr));
+        return set1.equals(set2);
     }
 
     @Override
