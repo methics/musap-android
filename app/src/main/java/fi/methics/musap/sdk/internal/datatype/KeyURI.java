@@ -179,8 +179,12 @@ public class KeyURI {
                 return false;
             } else {
                 String thisValue = this.keyUriMap.get(param.getKey());
+                if (thisValue == null) {
+                    return false;
+                }
+
                 String givenValue = param.getValue();
-                if (!this.areParamsPartialMatch(thisValue, givenValue)) {
+                if (!this.areParamsPartialMatch(thisValue.toLowerCase(), givenValue.toLowerCase())) {
                     MLog.d(String.format("Param %s is not a partial match with %s", thisValue, givenValue));
                     return false;
                 }
@@ -190,6 +194,13 @@ public class KeyURI {
     }
 
 
+    /**
+     * Check if this KeyURI parameter is a partial match of searched parameter value.
+     * For example, if this parameter has value "a,b", then
+     * @param thisParam
+     * @param searchParam
+     * @return
+     */
     private boolean areParamsPartialMatch(String thisParam, String searchParam) {
         // TODO: How are nulls matched? Can these even be null?
         String[] thisArr = thisParam.split(",");
@@ -198,7 +209,6 @@ public class KeyURI {
         Set<String> thisSet = new HashSet<>(Arrays.asList(thisArr));
         Set<String> searchSet = new HashSet<>(Arrays.asList(searchArr));
 
-        // Check if the sets are equal
         return thisSet.containsAll(searchSet);
     }
 
