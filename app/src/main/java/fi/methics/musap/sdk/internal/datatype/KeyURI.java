@@ -2,8 +2,10 @@ package fi.methics.musap.sdk.internal.datatype;
 
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,7 +39,7 @@ public class KeyURI {
         }
 
         if (key.getAttributeValue(MSISDN) != null) keyUriMap.put(MSISDN, key.getAttributeValue(MSISDN));
-        if (key.getAttributeValue(SERIAL) != null) keyUriMap.put(MSISDN, key.getAttributeValue(SERIAL));
+        if (key.getAttributeValue(SERIAL) != null) keyUriMap.put(SERIAL, key.getAttributeValue(SERIAL));
 
         if (key.getSscdInfo() != null) {
             String sscdName     = key.getSscdInfo().getSscdName();
@@ -63,6 +65,29 @@ public class KeyURI {
     }
 
     /**
+     * Get a single-valued parameter
+     * @param name parameter name
+     * @return parameter value
+     */
+    public String getParam(String name) {
+        return this.keyUriMap.get(name);
+    }
+
+    /**
+     * Get a multi-valued parameter
+     * @param name parameter name
+     * @return parameter value
+     */
+    public List<String> getParams(String name) {
+        String value = this.keyUriMap.get(name);
+        if (value == null) return Collections.emptyList();
+        if (value.contains(",")) {
+            return Arrays.asList(value.split(","));
+        }
+        return Arrays.asList(value);
+    }
+
+    /**
      * Parse a KeyURI
      * @param keyURI
      * @return
@@ -81,12 +106,12 @@ public class KeyURI {
         }
 
         for (String attribute : parts) {
-            if (attribute.contains(":")) {
-                String[] split = attribute.split(":");
+            if (attribute.contains("=")) {
+                String[] split = attribute.split("=");
                 if (split.length < 2) continue;
                 String key   = split[0];
                 String value = split[1];
-                MLog.d("Parsed " + key + ":" + value);
+                MLog.d("Parsed " + key + "=" + value);
                 keyUriMap.put(key, value);
             } else {
                 MLog.d("Ignoring invalid attribute " + attribute);
@@ -138,10 +163,14 @@ public class KeyURI {
      * @return URI
      */
     public String getUri() {
-        StringBuilder sb = new StringBuilder("mss:");
+        StringBuilder sb = new StringBuilder("keyuri:key");
         boolean first = true;
         for (String key : this.keyUriMap.keySet()) {
-            if (!first) sb.append(",");
+            if (!first) {
+                sb.append("&");
+            } else {
+                sb.append("?");
+            }
             sb.append(key);
             sb.append("=");
             sb.append(this.keyUriMap.get(key));
