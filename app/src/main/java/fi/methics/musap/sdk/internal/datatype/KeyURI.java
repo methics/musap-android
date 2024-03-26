@@ -104,6 +104,14 @@ public class KeyURI {
         this.keyUriMap = this.parseUri(keyURI);
     }
 
+    /**
+     * Create a copy of the given KeyURI
+     * @param keyURI KeyURI
+     */
+    public KeyURI(KeyURI keyURI) {
+        this(keyURI.getUri());
+    }
+
     private KeyURI(Map<String, String> params) {
         this.keyUriMap = params;
     }
@@ -298,6 +306,19 @@ public class KeyURI {
         Set<String> set1 = new HashSet<>(Arrays.asList(thisArr));
         Set<String> set2 = new HashSet<>(Arrays.asList(searchArr));
         return set1.equals(set2);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        KeyURI keyURI = (KeyURI) o;
+        return keyUriMap.equals(keyURI.keyUriMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return keyUriMap.hashCode();
     }
 
     @Override

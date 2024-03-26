@@ -35,6 +35,16 @@ public class KeyUriTest {
     }
 
     @Test
+    public void testReParseKeyUri() {
+
+        KeyURI uri1 = new KeyURI("keyuri:key?sscd=sim&provider=test");
+        KeyURI uri2 = new KeyURI(uri1);
+        KeyURI uri3 = new KeyURI(uri2.getUri());
+
+        assertEquals(uri1, uri2);
+        assertEquals(uri2, uri3);
+    }
+    @Test
     public void testParseMusapKey() {
 
         MusapKey key = new MusapKey.Builder()
