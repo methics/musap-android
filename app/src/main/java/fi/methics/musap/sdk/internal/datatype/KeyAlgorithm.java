@@ -7,22 +7,22 @@ import java.util.Objects;
  */
 public class KeyAlgorithm {
 
-    public static final String PRIMITIVE_RSA = "RSA";
-    public static final String PRIMITIVE_EC  = "EC";
+    public static final String PRIMITIVE_RSA = "rsa";
+    public static final String PRIMITIVE_EC  = "ec";
 
-    public static final String ALG_STR_RSA_2K      = "RSA2K";
-    public static final String ALG_STR_RSA_4K      = "RSA4K";
-    public static final String ALG_STR_ECC_P256_K1 = "ECCP256K1";
-    public static final String ALG_STR_ECC_P256_R1 = "ECCP256R1";
-    public static final String ALG_STR_ECC_P384_K1 = "ECCP384K1";
-    public static final String ALG_STR_ECC_P384_R1 = "ECCP384R1";
-    public static final String ALG_STR_ECC_ED25519 = "ECC_ED25519";
+    public static final String ALG_STR_RSA_2K      = "rsa2k";
+    public static final String ALG_STR_RSA_4K      = "rsa4k";
+    public static final String ALG_STR_ECC_P256_K1 = "eccp256k1";
+    public static final String ALG_STR_ECC_P256_R1 = "eccp256r1";
+    public static final String ALG_STR_ECC_P384_K1 = "eccp384k1";
+    public static final String ALG_STR_ECC_P384_R1 = "eccp384r1";
+    public static final String ALG_STR_ECC_ED25519 = "ecc_ed25519";
 
     public static final String CURVE_SECP256K1 = "secp256k1";
     public static final String CURVE_SECP384K1 = "secp384k1";
     public static final String CURVE_SECP256R1 = "secp256r1";
     public static final String CURVE_SECP384R1 = "secp384r1";
-    public static final String CURVE_25519     = "Ed25519";
+    public static final String CURVE_25519     = "ed25519";
 
     public static final KeyAlgorithm RSA_2K      = new KeyAlgorithm(PRIMITIVE_RSA, 2048);
     public static final KeyAlgorithm RSA_4K      = new KeyAlgorithm(PRIMITIVE_RSA, 4096);
@@ -42,7 +42,7 @@ public class KeyAlgorithm {
      * @param bits      Bits (key length)
      */
     public KeyAlgorithm(String primitive, int bits) {
-        this.primitive  = primitive;
+        this.primitive  = primitive.toLowerCase();
         this.bits       = bits;
     }
 
@@ -53,8 +53,8 @@ public class KeyAlgorithm {
      * @param bits      Bits (key length)
      */
     public KeyAlgorithm(String primitive, String curve, int bits) {
-        this.primitive  = primitive;
-        this.curve      = curve;
+        this.primitive  = primitive.toLowerCase();
+        this.curve      = curve.toLowerCase();
         this.bits       = bits;
     }
 
@@ -66,7 +66,7 @@ public class KeyAlgorithm {
      */
     public static KeyAlgorithm fromString(String algo) {
         if (algo == null) return null;
-        switch (algo.toUpperCase()) {
+        switch (algo.toLowerCase()) {
             case CURVE_25519: return ECC_ED25519;
             case CURVE_SECP256K1: return ECC_P256_K1;
             case CURVE_SECP256R1: return ECC_P256_R1;
@@ -88,7 +88,7 @@ public class KeyAlgorithm {
      * @return true for RSA key
      */
     public boolean isRsa() {
-        return PRIMITIVE_RSA.equals(this.primitive);
+        return PRIMITIVE_RSA.equalsIgnoreCase(this.primitive);
     }
 
     /**
@@ -96,7 +96,7 @@ public class KeyAlgorithm {
      * @return true for EC key
      */
     public boolean isEc() {
-        return PRIMITIVE_EC.equals(this.primitive);
+        return PRIMITIVE_EC.equalsIgnoreCase(this.primitive);
     }
 
     /**
@@ -109,7 +109,7 @@ public class KeyAlgorithm {
         if (this.isRsa()) {
             return new SignatureAlgorithm(SignatureAlgorithm.SCHEME_RSA, hashAlgo);
         } else {
-            if (CURVE_25519.equals(this.curve)) {
+            if (CURVE_25519.equalsIgnoreCase(this.curve)) {
                 return SignatureAlgorithm.EDDSA;
             } else {
                 return new SignatureAlgorithm(SignatureAlgorithm.SCHEME_ECDSA, hashAlgo);
