@@ -7,9 +7,12 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import fi.methics.musap.sdk.internal.datatype.KeyURI;
+import fi.methics.musap.sdk.internal.datatype.MusapKey;
+import fi.methics.musap.sdk.internal.datatype.MusapLoA;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 /**
@@ -27,11 +30,26 @@ public class KeyUriTest {
 
         KeyURI uri = new KeyURI("keyuri:key?sscd=sim&provider=test");
 
-        System.out.println(uri);
         assertEquals("sim", uri.getParam("sscd"));
         assertEquals("test", uri.getParam("provider"));
     }
 
+    @Test
+    public void testParseMusapKey() {
+
+        MusapKey key = new MusapKey.Builder()
+                .setKeyAlias("test")
+                .setLoa(Arrays.asList(MusapLoA.EIDAS_HIGH, MusapLoA.NIST_AAL3))
+                .setKeyUsages(Arrays.asList("digitalSignature", "nonRepudiation"))
+                .build();
+
+        KeyURI uri = new KeyURI(key);
+
+        assertEquals("digitalSignature,nonRepudiation", uri.getParam("key-usage"));
+        assertEquals("digitalSignature", uri.getParams("key-usage").get(0));
+        assertEquals("eidas-high", uri.getParams("loa").get(0));
+        assertEquals("test", uri.getParam("key-name"));
+    }
     @Test
     public void testParseKeyUriWithMultiValuedParams() {
 

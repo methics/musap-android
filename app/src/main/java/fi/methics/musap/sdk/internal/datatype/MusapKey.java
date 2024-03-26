@@ -1,5 +1,6 @@
 package fi.methics.musap.sdk.internal.datatype;
 
+import java.sql.Array;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -322,10 +323,10 @@ public class MusapKey {
         private String sscdType;
         private PublicKey publicKey;
         private MusapCertificate certificate;
-        private List<MusapCertificate> certificateChain;
+        private List<MusapCertificate> certificateChain = new ArrayList<>();
         private List<KeyAttribute> attributes = new ArrayList<>();
-        private List<String> keyUsages;
-        private List<MusapLoA> loa;
+        private List<String> keyUsages = new ArrayList<>();
+        private List<MusapLoA> loa = new ArrayList<>();
         private KeyAlgorithm algorithm;
 
         public Builder setKeyAlias(String keyAlias) {

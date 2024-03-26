@@ -8,20 +8,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import fi.methics.musap.sdk.internal.util.MLog;
 
 public class KeyURI {
 
-    public static final String ALIAS      = "alias";
-    public static final String LOA        = "loa";
-    public static final String COUNTRY    = "country";
-    public static final String PROVIDER   = "provider";
-    public static final String SSCD       = "sscd";
-    public static final String ALGORITHM  = "algorithm";
-    public static final String MSISDN     = "msisdn";
-    public static final String SERIAL     = "serial";
-    public static final String CREATED_DT = "created_dt";
+    public static final String SSCD            = "sscd";
+    public static final String PROVIDER        = "provider";
+    public static final String COUNTRY         = "country";
+    public static final String IDENTITY_SCHEME = "identity-scheme";
+    public static final String SERIAL          = "serial";
+    public static final String MSISDN          = "msisdn";
+    public static final String LOA             = "loa";
+
+    public static final String KEY_USAGE       = "key-usage";
+    public static final String KEY_NAME        = "key-name";
+    public static final String KEY_ALGORITHM   = "key-algorithm";
+    public static final String KEY_LENGTH      = "key-length";
+    public static final String KEY_PREGEN      = "key-pregenerated";
+
+    public static final String RSA_EXPONENT    = "rsa-public-exponent";
+    public static final String ECC_CURVE       = "ecc-curve";
+    public static final String CREATED_DATE    = "created-date";
 
     private Map<String, String> keyUriMap = new HashMap<>();
 
@@ -30,26 +39,61 @@ public class KeyURI {
      * @param key Key to create the URI form from
      */
     public KeyURI(MusapKey key) {
-
-        // TODO: Rename key.getKeyName() to key.getKeyAlias()
-        if (key.getKeyAlias()     != null) keyUriMap.put(ALIAS,      key.getKeyAlias());
-        if (key.getAlgorithm()   != null) keyUriMap.put(ALGORITHM,  key.getAlgorithm().isEc() ? "EC" : "RSA");
+        if (key.getKeyAlias()  != null) keyUriMap.put(KEY_NAME, key.getKeyAlias());
+        if (key.getAlgorithm() != null) {
+            this.addParam(KEY_ALGORITHM,  key.getAlgorithm().isEc() ? "EC" : "RSA");
+            this.addParam(KEY_LENGTH, key.getAlgorithm().bits + "");
+            this.addParam(ECC_CURVE, key.getAlgorithm().curve);
+        }
         if (key.getCreatedDate() != null && key.getCreatedDate().toEpochMilli() != 0) {
-            keyUriMap.put(CREATED_DT, key.getCreatedDate().toString().split("T")[0]);
+            this.addParam(CREATED_DATE, key.getCreatedDate().toString().split("T")[0]);
         }
 
-        if (key.getAttributeValue(MSISDN) != null) keyUriMap.put(MSISDN, key.getAttributeValue(MSISDN));
-        if (key.getAttributeValue(SERIAL) != null) keyUriMap.put(SERIAL, key.getAttributeValue(SERIAL));
+        this.addParam(KEY_USAGE, key.getKeyUsages());
+        if (key.getLoa() != null) {
+            this.addParam(LOA, key.getLoa().stream().map(l -> l.toString()).collect(Collectors.toList()));
+        }
+        if (key.getAttributeValue(MSISDN) != null) this.addParam(MSISDN, key.getAttributeValue(MSISDN));
+        if (key.getAttributeValue(SERIAL) != null) this.addParam(SERIAL, key.getAttributeValue(SERIAL));
 
         if (key.getSscdInfo() != null) {
             String sscdName     = key.getSscdInfo().getSscdName();
             String sscdCountry  = key.getSscdInfo().getCountry();
             String sscdProvider = key.getSscdInfo().getProvider();
 
-            if (sscdName     != null) keyUriMap.put(SSCD,     sscdName);
-            if (sscdCountry  != null) keyUriMap.put(COUNTRY,  sscdCountry);
-            if (sscdProvider != null) keyUriMap.put(PROVIDER, sscdProvider);
+            if (sscdName     != null) this.addParam(SSCD,     sscdName);
+            if (sscdCountry  != null) this.addParam(COUNTRY,  sscdCountry);
+            if (sscdProvider != null) this.addParam(PROVIDER, sscdProvider);
         }
+    }
+
+    /**
+     * Add a new parameter
+     * @param name name
+     * @param value value
+     */
+    public void addParam(String name, String ... value) {
+        if (value == null) {
+            this.keyUriMap.put(name, null);
+        } else {
+            MLog.d("Adding param " + name + "=" + Arrays.asList(value));
+            if (value.length > 1) {
+                this.keyUriMap.put(name, String.join(",", value));
+            } else if (value.length == 0) {
+                this.keyUriMap.put(name, null);
+            } else {
+                this.keyUriMap.put(name, value[0]);
+            }
+        }
+    }
+
+    /**
+     * Add a new parameter
+     * @param name name
+     * @param value value
+     */
+    public void addParam(String name, List<String> value) {
+        this.addParam(name, value.toArray(new String[0]));
     }
 
     /**
@@ -80,6 +124,7 @@ public class KeyURI {
      */
     public List<String> getParams(String name) {
         String value = this.keyUriMap.get(name);
+        MLog.d("Getting param " + name + "=" +value);
         if (value == null) return Collections.emptyList();
         if (value.contains(",")) {
             return Arrays.asList(value.split(","));
@@ -99,7 +144,7 @@ public class KeyURI {
 //            return keyUriMap;
 //        }
 
-        // Example keyuri:key?algorithm:rsa2k&sscd=SIM
+        // Example keyuri:key?algorithm:rsa&sscd=sim
         String[] parts = keyURI.replace("keyuri:key?", "").split("&");
         if (parts.length == 0) {
             parts = new String[] {keyURI.replace("keyuri:key?", "")};
@@ -125,13 +170,21 @@ public class KeyURI {
         return keyUriMap;
     }
 
+    /**
+     * Get the Key Name from the KeyURI
+     * @return Key Name
+     */
     public String getName() {
-        return this.keyUriMap.get(ALIAS);
+        return this.keyUriMap.get(KEY_NAME);
     }
+
+    /**
+     * Get the Country value from the KeyURI
+     * @return Country
+     */
     public String getCountry() {
         return this.keyUriMap.get(COUNTRY);
     }
-
 
     /**
      * Get this URI in a display format with only requested params
