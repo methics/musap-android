@@ -70,22 +70,23 @@ public class KeyURI {
     private Map<String, String> parseUri(String keyURI) {
         Map<String, String> keyUriMap = new HashMap<>();
         MLog.d("Parsing keyURI " + keyURI);
-        if (keyURI == null || !keyURI.contains(",")) {
-            return keyUriMap;
-        }
+//        if (keyURI == null || !keyURI.contains("&")) {
+//            return keyUriMap;
+//        }
 
-        String[] parts = keyURI.replace("mss:", "").split(",");
+        // Example keyuri:key?algorithm:rsa2k&sscd=SIM
+        String[] parts = keyURI.replace("keyuri:key?", "").split("&");
         if (parts.length == 0) {
-            parts = new String[] {keyURI.replace("mss:", "")};
+            parts = new String[] {keyURI.replace("keyuri:key?", "")};
         }
 
         for (String attribute : parts) {
-            if (attribute.contains("=")) {
-                String[] split = attribute.split("=");
+            if (attribute.contains(":")) {
+                String[] split = attribute.split(":");
                 if (split.length < 2) continue;
                 String key   = split[0];
                 String value = split[1];
-                MLog.d("Parsed " + key + "=" + value);
+                MLog.d("Parsed " + key + ":" + value);
                 keyUriMap.put(key, value);
             } else {
                 MLog.d("Ignoring invalid attribute " + attribute);
