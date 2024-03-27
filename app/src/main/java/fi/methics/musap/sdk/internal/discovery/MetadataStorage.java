@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +80,7 @@ public class MetadataStorage {
         // Conver
         String keyJson = this.toJson(key);
         MLog.d("KeyJson=" + keyJson);
+        MLog.d("Key JSON size="+ keyJson.getBytes(StandardCharsets.UTF_8).length + " B");
 
         this.getSharedPref()
                 .edit()
@@ -190,6 +192,8 @@ public class MetadataStorage {
 
         String json = new Gson().toJson(sscd);
         MLog.d("SSCD JSON=" + json);
+
+        MLog.d("SSCD JSON size="+ json.getBytes(StandardCharsets.UTF_8).length + " B");
 
         this.getSharedPref()
                 .edit()
@@ -333,11 +337,13 @@ public class MetadataStorage {
      */
     private void addKeyToMetadataStorage(MusapKey key) {
         String keyJson = this.toJson(key);
+        MLog.d("Key JSON size="+ keyJson.getBytes(StandardCharsets.UTF_8).length + " B");
         this.getSharedPref()
                 .edit()
                 .putString(this.makeStoreName(key), keyJson)
                 .apply();
     }
+
 
     private String toJson(MusapKey key) {
         return new Gson().toJson(key);
