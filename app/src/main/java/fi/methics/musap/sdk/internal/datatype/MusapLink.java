@@ -6,6 +6,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.util.concurrent.TimeUnit;
 
 import fi.methics.musap.sdk.api.MusapException;
@@ -20,6 +22,11 @@ import fi.methics.musap.sdk.internal.datatype.coupling.SignatureCallbackPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.SignaturePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataResponsePayload;
+import fi.methics.musap.sdk.internal.encryption.AesTransportEncryption;
+import fi.methics.musap.sdk.internal.encryption.TransportEncryption;
+import fi.methics.musap.sdk.internal.encryption.keygenerator.AlaudaKeyGenerator;
+import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
+import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorageFactory;
 import fi.methics.musap.sdk.internal.util.ByteaMarshaller;
 import fi.methics.musap.sdk.internal.util.MLog;
 import okhttp3.MediaType;
@@ -68,13 +75,18 @@ public class MusapLink {
     // Okhttp connect timeout milliseconds
     private static final long shortReadTimeOutMs = 10*1000;
 
-    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(byte[].class, new ByteaMarshaller()).create();
+    private static final Gson GSON = new GsonBuilder()
+            .disableHtmlEscaping()
+            .registerTypeAdapter(byte[].class, new ByteaMarshaller())
+            .create();
 
     private String url;
     private String musapid;
 
     private String aesKey;
     private String macKey;
+
+    private static TransportEncryption encryption = new AesTransportEncryption(KeyStorageFactory.getAndroidKeyStorage());
 
     public MusapLink(String url, String musapid) {
         this.url     = url;
@@ -97,20 +109,13 @@ public class MusapLink {
         return this.musapid;
     }
 
-    public void setAesKey(String aesKey) {
-        this.aesKey = aesKey;
-    }
-
-    public void setMacKey(String macKey) {
-        this.macKey = macKey;
-    }
-
     public void encrypt(MusapMessage msg) {
         // TODO
     }
 
-    public void decrypt(MusapMessage msg) {
-        // TODO
+    public String decrypt(MusapMessage msg) throws GeneralSecurityException, IOException {
+        byte[] decodedMsg = Base64.decode(msg.payload.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+        return this.encryption.decrypt(decodedMsg, msg.iv);
     }
 
     /**
@@ -119,8 +124,9 @@ public class MusapLink {
      * @return MusapLink with updated data.
      * @throws IOException
      */
-    public MusapLink enroll(String fcmToken) throws IOException {
-        EnrollDataPayload payload = new EnrollDataPayload(fcmToken);
+    public MusapLink enroll(String fcmToken) throws IOException, GeneralSecurityException {
+        String secret = AlaudaKeyGenerator.hkdfStatic();
+        EnrollDataPayload payload = new EnrollDataPayload(fcmToken, secret);
 
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
@@ -141,9 +147,11 @@ public class MusapLink {
 
                 MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
                 MLog.d("Response payload=" + respMsg.payload);
-                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
-                MLog.d("Decoded=" + payloadJson);
-                EnrollDataResponsePayload respPayload = GSON.fromJson(payloadJson, EnrollDataResponsePayload.class);
+
+                String decrypted = this.decrypt(respMsg);
+                MLog.d("Decrypted=" + decrypted);
+
+                EnrollDataResponsePayload respPayload = GSON.fromJson(decrypted, EnrollDataResponsePayload.class);
 
                 this.musapid = respPayload.getMusapId();
                 return this;

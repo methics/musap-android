@@ -1,12 +1,20 @@
 package fi.methics.musap.sdk.internal.datatype;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+
+import fi.methics.musap.sdk.internal.util.ByteaMarshaller;
 
 /**
  * Message between the MUSAP library and MUSAP link
  */
 public class MusapMessage {
+
+    private static final Gson GSON = new GsonBuilder()
+            .disableHtmlEscaping()
+            .registerTypeAdapter(byte[].class, new ByteaMarshaller())
+            .create();
 
     @SerializedName("type")
     public String type;
@@ -27,6 +35,6 @@ public class MusapMessage {
     private transient boolean isEncrypted;
 
     public String toJson() {
-        return new Gson().toJson(this);
+        return GSON.toJson(this);
     }
 }
