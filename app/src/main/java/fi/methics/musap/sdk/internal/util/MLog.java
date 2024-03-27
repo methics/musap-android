@@ -9,9 +9,13 @@ import android.util.Log;
 public class MLog {
 
     private static boolean debugEnabled = true;
+    private static boolean testMode     = false;
 
     public static void setDebugEnabled(boolean isEnabled) {
         debugEnabled = isEnabled;
+    }
+    public static void setTestMode(boolean isEnabled) {
+        testMode = isEnabled;
     }
 
     private static final String TAG = "MUSAPLog";
@@ -35,10 +39,14 @@ public class MLog {
 
     /**
      * Log an error on debug level
-     * @param msg error log
+     * @param msg debug message
      * @param t   throwable
      */
     public static void d(String msg, Throwable t) {
+        if (testMode) {
+            System.out.println( msg);
+            return;
+        }
         Log.d(TAG, msg, t);
     }
 
@@ -47,6 +55,10 @@ public class MLog {
      * @param msg error message
      */
     public static void e(String msg) {
+        if (testMode) {
+            System.err.println( msg);
+            return;
+        }
         Log.e(TAG, msg);
     }
 
@@ -56,6 +68,10 @@ public class MLog {
      * @param t   throwable
      */
     public static void e(String msg, Throwable t) {
+        if (testMode) {
+            System.err.println( msg);
+            return;
+        }
         Log.e(TAG, msg, t);
     }
 
@@ -65,7 +81,11 @@ public class MLog {
      * @param msg error message
      */
     public static void e(String tag, String msg) {
-        Log.d(tag, msg);
+        if (testMode) {
+            System.err.println(tag + ": " + msg);
+            return;
+        }
+        Log.e(tag, msg);
     }
 
     /**
@@ -74,6 +94,10 @@ public class MLog {
      * @param content Content to log
      */
     private static void largeLogD(String tag, String content) {
+        if (testMode) {
+            System.out.println(tag + ": " + content);
+            return;
+        }
         if (!debugEnabled) {
             return;
         }
