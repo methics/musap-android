@@ -12,6 +12,7 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.Security;
 import java.security.Signature;
 import java.security.spec.AlgorithmParameterSpec;
@@ -20,6 +21,8 @@ import java.security.spec.RSAKeyGenParameterSpec;
 import java.util.Arrays;
 
 import fi.methics.musap.sdk.api.MusapConstants;
+import fi.methics.musap.sdk.attestation.AndroidKeyAttestation;
+import fi.methics.musap.sdk.attestation.KeyAttestation;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
@@ -64,9 +67,6 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
 
         Security.removeProvider("BC");
         MLog.d("Remove provider");
-//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-//        MLog.d("Insert provider");
-
         SscdInfo sscd = this.getSscdInfo();
         String                algorithm = this.resolveAlgorithm(req);
         AlgorithmParameterSpec algSspec = this.resolveAlgorithmParameterSpec(req);
@@ -90,7 +90,6 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
         KeyGenParameterSpec spec = builder.build();
         MLog.d("Algorithm spec " + spec);
 
-//        KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithm, new BouncyCastleProvider());
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(algorithm, "AndroidKeyStore");
         kpg.initialize(spec);
 
@@ -115,11 +114,6 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
     public MusapSignature sign(SignatureReq req) throws GeneralSecurityException, IOException {
         String alias = req.getKey().getKeyAlias();
         Security.removeProvider("BC");
-        MLog.d("Remove provider");
-//        Security.insertProviderAt(new BouncyCastleProvider(), 1);
-//        MLog.d("Insert provider");
-
-//        KeyStore ks = KeyStore.getInstance("AndroidKeyStore", new BouncyCastleProvider());
         KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
 
         ks.load(null);
@@ -133,7 +127,9 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
         MLog.d("Signing " + new String(req.getData()) + " with algorithm " + algorithm);
         Signature s = Signature.getInstance(algorithm.getJavaAlgorithm());
 
-        s.initSign(((KeyStore.PrivateKeyEntry) entry).getPrivateKey());
+        PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
+
+        s.initSign(privateKey);
         s.update(req.getData());
 
         byte[] signature = s.sign();
@@ -142,17 +138,6 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
         MLog.d("Signature=" + Base64.encodeToString(signature, Base64.DEFAULT));
 
         return new MusapSignature(signature, req.getKey(), algorithm, req.getFormat());
-    }
-
-    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-    public static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-        }
-        return new String(hexChars);
     }
 
     @Override
@@ -175,6 +160,11 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
     @Override
     public AndroidKeystoreSettings getSettings() {
         return settings;
+    }
+
+    @Override
+    public KeyAttestation getKeyAttestation() {
+        return new AndroidKeyAttestation();
     }
 
     /**
@@ -211,6 +201,17 @@ public class AndroidKeystoreSscd implements MusapSscdInterface<AndroidKeystoreSe
         } else {
             return KeyProperties.KEY_ALGORITHM_EC;
         }
+    }
+
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+    private static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 
 }

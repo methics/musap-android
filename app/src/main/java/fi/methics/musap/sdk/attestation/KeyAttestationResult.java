@@ -32,7 +32,6 @@ public class KeyAttestationResult {
     @SerializedName("certificate_chain")
     private List<MusapCertificate> certificateChain;
 
-
     @SerializedName("attestation_status")
     private AttestationStatus attestationStatus;
 
@@ -84,6 +83,13 @@ public class KeyAttestationResult {
         return this.certificate;
     }
 
+    /**
+     * Get the certificate chain
+     * @return certificate chain
+     */
+    public List<MusapCertificate> getCertificateChain() {
+        return this.certificateChain;
+    }
 
     /**
      * Convert this attestation result to a JSON object.

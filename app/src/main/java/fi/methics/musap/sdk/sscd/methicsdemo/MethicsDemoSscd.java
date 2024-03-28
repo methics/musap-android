@@ -192,6 +192,7 @@ public class MethicsDemoSscd implements MusapSscdInterface<MethicsDemoSettings> 
                 MLog.d("Successfully bound Methics Demo SSCD");
                 MusapKey.Builder builder = new MusapKey.Builder();
                 builder.setCertificate(signature.getSignerCertificate());
+                builder.setCertificateChain(signature.getCertificateChain());
                 builder.setKeyAlias(req.getKeyAlias());
                 builder.setSscdType(SSCD_TYPE);
                 builder.setSscdId(this.getSscdInfo().getSscdId());

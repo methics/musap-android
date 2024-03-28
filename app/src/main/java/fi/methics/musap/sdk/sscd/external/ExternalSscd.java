@@ -97,6 +97,7 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
         return new MusapKey.Builder()
                 .setCertificate(signature.getSignerCertificate())
+                .setCertificateChain(signature.getCertificateChain())
                 .setKeyAlias(req.getKeyAlias())
                 .setSscd(this.getSscdInfo())
                 .setKeyId(keyid)
