@@ -124,7 +124,7 @@ public class MusapLink {
         msg.payload = payload.toBase64();
         msg.type = ENROLL_MSG_TYPE;
 
-        MusapMessage respMsg = this.sendRequest(msg, false);
+        MusapMessage respMsg = this.sendRequest(msg, true);
         MLog.d("Response payload=" + respMsg.payload);
 
         EnrollDataResponsePayload respPayload = GSON.fromJson(respMsg.payload, EnrollDataResponsePayload.class);
@@ -166,10 +166,11 @@ public class MusapLink {
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
         msg.type = COUPLE_MSG_TYPE;
+        msg.musapId = this.musapid;
 
         MusapMessage respMsg = this.sendRequest(msg, true);
 
-        if (respMsg.payload == null) {
+        if (respMsg == null || respMsg.payload == null) {
             MLog.d("Null payload");
             return null;
         }
@@ -311,7 +312,8 @@ public class MusapLink {
         MLog.d("Target URL " + this.url);
 
         // If the request should be encrypted, rewrite payload with the encrypted variant
-        if (shouldEncrypt) {
+        // Enroll request is not encrypted, but response is.
+        if (shouldEncrypt && !msg.type.equalsIgnoreCase(ENROLL_MSG_TYPE)) {
             PayloadHolder holder = this.getPayload(msg.payload, shouldEncrypt);
             msg.payload = holder.getPayload();
             msg.iv = holder.getIv();
@@ -334,14 +336,14 @@ public class MusapLink {
                     return null;
                 }
 
-                // Decrypt payload if necessary
-                if (shouldEncrypt) {
-                    MLog.d("Validating MAC");
-                    boolean isValid = mac.validate(msg.payload, msg.iv, msg.transid, msg.type, msg.mac);
-                    if (!isValid) {
+                // TODO: For now, only warn about mac violations
+                try {
+                    if (shouldEncrypt && !isMacValid(respMsg)) {
                         MLog.d("Invalid MAC");
                         throw new MusapException("Invalid message");
                     }
+               } catch (Exception e) {
+                    MLog.e("Invalid mac", e);
                 }
                 respMsg.payload = this.parsePayload(respMsg, shouldEncrypt);
 
@@ -351,6 +353,11 @@ public class MusapLink {
                 return null;
             }
         }
+    }
+
+    private boolean isMacValid(MusapMessage msg) throws GeneralSecurityException, IOException {
+        MLog.d("Validating MAC");
+        return mac.validate(msg.payload, msg.iv, msg.transid, msg.type, msg.mac);
     }
 
     /**

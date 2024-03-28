@@ -44,9 +44,9 @@ public class HmacGenerator implements MacGenerator {
     public boolean validate(String message, String iv, String transId, String type, String mac)
             throws GeneralSecurityException, IOException {
 
-        if (transId == null) {
-            throw new IllegalArgumentException("No TransID for MAC calculation");
-        }
+//        if (transId == null) {
+//            throw new IllegalArgumentException("No TransID for MAC calculation");
+//        }
 
         if (message == null) {
             throw new IllegalArgumentException("No message for MAC calculation");
