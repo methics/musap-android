@@ -26,7 +26,7 @@ import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorageFactory;
 /**
  * Generates transport security and signing keys and store them to the keystore.
  */
-public class AlaudaKeyGenerator implements KeyGenerator {
+public class MusapKeyGenerator implements KeyGenerator {
 
     // Used in MSSP<->App communication
     public static final String TRANSPORT_KEY_ALIAS = "transportkey";

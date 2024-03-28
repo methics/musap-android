@@ -16,7 +16,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import fi.methics.musap.sdk.internal.encryption.keygenerator.AlaudaKeyGenerator;
+import fi.methics.musap.sdk.internal.encryption.keygenerator.MusapKeyGenerator;
 import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
 
 
@@ -71,7 +71,7 @@ public class AesTransportEncryption implements TransportEncryption {
 
     private Cipher initCipher(int mode, String ivBase64) throws GeneralSecurityException, IOException {
 
-        SecretKey transportSecurityKey = this.keyStorage.loadKey(AlaudaKeyGenerator.TRANSPORT_KEY_ALIAS);
+        SecretKey transportSecurityKey = this.keyStorage.loadKey(MusapKeyGenerator.TRANSPORT_KEY_ALIAS);
 
         if (transportSecurityKey == null) {
             throw new IllegalArgumentException("You must generate a transport security key first");
