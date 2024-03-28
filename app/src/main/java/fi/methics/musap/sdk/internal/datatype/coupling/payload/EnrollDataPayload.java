@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype.coupling;
+package fi.methics.musap.sdk.internal.datatype.coupling.payload;
 
 import android.util.Base64;
 
@@ -8,9 +8,10 @@ import com.google.gson.annotations.SerializedName;
 
 import java.nio.charset.StandardCharsets;
 
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.MusapLinkPayload;
 import fi.methics.musap.sdk.internal.util.MLog;
 
-public class EnrollDataPayload {
+public class EnrollDataPayload extends MusapLinkPayload {
 
     @SerializedName("fcmtoken")
     private final String fcmToken;

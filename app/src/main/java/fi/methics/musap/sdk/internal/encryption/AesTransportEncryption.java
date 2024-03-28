@@ -41,19 +41,19 @@ public class AesTransportEncryption implements TransportEncryption {
     }
 
     @Override
-    public EncryptedPayload encrypt(String message) throws GeneralSecurityException, IOException {
+    public PayloadHolder encrypt(String message) throws GeneralSecurityException, IOException {
         return this.encrypt(message, null);
     }
 
     @Override
-    public EncryptedPayload encrypt(String message, String iv) throws IOException, GeneralSecurityException {
+    public PayloadHolder encrypt(String message, String iv) throws IOException, GeneralSecurityException {
         if (message == null) {
             throw new IllegalArgumentException("Missing data for encryption");
         }
 
         Cipher cipher = this.initCipher(Cipher.ENCRYPT_MODE, iv);
         byte[] encrypted = cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
-        return new EncryptedPayload(Base64.encodeToString(encrypted, Base64.NO_WRAP),
+        return new PayloadHolder(Base64.encodeToString(encrypted, Base64.NO_WRAP),
                 Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP));
     }
 

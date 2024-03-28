@@ -11,21 +11,21 @@ import java.security.GeneralSecurityException;
 import java.util.concurrent.TimeUnit;
 
 import fi.methics.musap.sdk.api.MusapException;
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.EnrollDataPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.EnrollDataResponsePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.ExternalSignaturePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountResponsePayload;
-import fi.methics.musap.sdk.internal.datatype.coupling.EnrollDataPayload;
-import fi.methics.musap.sdk.internal.datatype.coupling.EnrollDataResponsePayload;
-import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
-import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.PollResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.SignatureCallbackPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.SignaturePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataResponsePayload;
 import fi.methics.musap.sdk.internal.encryption.AesTransportEncryption;
+import fi.methics.musap.sdk.internal.encryption.PayloadHolder;
 import fi.methics.musap.sdk.internal.encryption.TransportEncryption;
 import fi.methics.musap.sdk.internal.encryption.keygenerator.AlaudaKeyGenerator;
-import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
 import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorageFactory;
 import fi.methics.musap.sdk.internal.util.ByteaMarshaller;
 import fi.methics.musap.sdk.internal.util.MLog;
@@ -83,9 +83,6 @@ public class MusapLink {
     private String url;
     private String musapid;
 
-    private String aesKey;
-    private String macKey;
-
     private static TransportEncryption encryption = new AesTransportEncryption(KeyStorageFactory.getAndroidKeyStorage());
 
     public MusapLink(String url, String musapid) {
@@ -109,15 +106,6 @@ public class MusapLink {
         return this.musapid;
     }
 
-    public void encrypt(MusapMessage msg) {
-        // TODO
-    }
-
-    public String decrypt(MusapMessage msg) throws GeneralSecurityException, IOException {
-        byte[] decodedMsg = Base64.decode(msg.payload.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
-        return this.encryption.decrypt(decodedMsg, msg.iv);
-    }
-
     /**
      * Enroll this Musap instance with a MUSAP link.
      * @param fcmToken
@@ -131,35 +119,15 @@ public class MusapLink {
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
         msg.type = ENROLL_MSG_TYPE;
-        MLog.d("Message=" + msg.toJson());
-        MLog.d("Url=" + this.url);
 
-        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
-        Request request = new Request.Builder()
-                .url(this.url)
-                .post(body)
-                .build();
-        OkHttpClient client = this.buildClient();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
-                String sResp = response.body().string();
-                MLog.d("Got response " + sResp);
+        MusapMessage respMsg = this.sendRequest(msg);
+        MLog.d("Response payload=" + respMsg.payload);
 
-                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
-                MLog.d("Response payload=" + respMsg.payload);
+        String respPayloadJson = this.parsePayload(respMsg, true);
+        EnrollDataResponsePayload respPayload = GSON.fromJson(respPayloadJson, EnrollDataResponsePayload.class);
 
-                String decrypted = this.decrypt(respMsg);
-                MLog.d("Decrypted=" + decrypted);
-
-                EnrollDataResponsePayload respPayload = GSON.fromJson(decrypted, EnrollDataResponsePayload.class);
-
-                this.musapid = respPayload.getMusapId();
-                return this;
-            } else {
-                MLog.d("Null response");
-                throw new IOException("EnrollData failed. Got empty response.");
-            }
-        }
+        this.musapid = respPayload.getMusapId();
+        return this;
     }
 
     /**
@@ -174,31 +142,15 @@ public class MusapLink {
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
         msg.type = UPDATE_MSG_TYPE;
-        MLog.d("Message=" + msg.toJson());
-        MLog.d("Url=" + this.url);
 
-        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
-        Request request = new Request.Builder()
-                .url(this.url)
-                .post(body)
-                .build();
-        OkHttpClient client = this.buildClient();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
-                String sResp = response.body().string();
-                MLog.d("Got response " + sResp);
 
-                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
-                MLog.d("Response payload=" + respMsg.payload);
-                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
-                MLog.d("Decoded=" + payloadJson);
-                UpdateDataResponsePayload respPayload = GSON.fromJson(payloadJson, UpdateDataResponsePayload.class);
-                return respPayload.isSuccess();
-            } else {
-                MLog.d("Null response");
-                throw new IOException("EnrollData failed. Got empty response.");
-            }
-        }
+        MusapMessage respMsg = this.sendRequest(msg);
+        MLog.d("Response payload=" + respMsg.payload);
+        String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+        MLog.d("Decoded=" + payloadJson);
+        UpdateDataResponsePayload respPayload = GSON.fromJson(payloadJson, UpdateDataResponsePayload.class);
+        return respPayload.isSuccess();
+
     }
 
     /**
@@ -213,43 +165,26 @@ public class MusapLink {
         MusapMessage msg = new MusapMessage();
         msg.payload = payload.toBase64();
         msg.type = COUPLE_MSG_TYPE;
-        MLog.d("Message=" + msg.toJson());
-        MLog.d("Url=" + this.url);
 
-        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
-        Request request = new Request.Builder()
-                .url(this.url)
-                .post(body)
-                .build();
-        OkHttpClient client = this.buildClient();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
-                String sResp = response.body().string();
-                MLog.d("Got response " + sResp);
+        MusapMessage respMsg = this.sendRequest(msg);
 
-                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
-
-                if (respMsg.payload == null) {
-                    MLog.d("Null payload");
-                    return null;
-                }
-
-                MLog.d("Response payload=" + respMsg.payload);
-                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
-                MLog.d("Decoded=" + payloadJson);
-
-                LinkAccountResponsePayload resp = GSON.fromJson(payloadJson, LinkAccountResponsePayload.class);
-                MLog.d("Parsed payload");
-                if (resp.isSuccess()) {
-                    return new RelyingParty(resp);
-                } else {
-                    return null;
-                }
-            } else {
-                MLog.d("Null response");
-                return null;
-            }
+        if (respMsg.payload == null) {
+            MLog.d("Null payload");
+            return null;
         }
+
+        MLog.d("Response payload=" + respMsg.payload);
+        String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+        MLog.d("Decoded=" + payloadJson);
+
+        LinkAccountResponsePayload resp = GSON.fromJson(payloadJson, LinkAccountResponsePayload.class);
+        MLog.d("Parsed payload");
+        if (resp.isSuccess()) {
+            return new RelyingParty(resp);
+        } else {
+            return null;
+        }
+
     }
 
     /**
@@ -262,40 +197,23 @@ public class MusapLink {
         MusapMessage msg = new MusapMessage();
         msg.type = POLL_MSG_TYPE;
         msg.musapId = this.musapid;
-        MLog.d("Message=" + msg.toJson());
-        MLog.d("Url=" + this.url);
 
-        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
-        Request request = new Request.Builder()
-                .url(this.url)
-                .post(body)
-                .build();
-        OkHttpClient client = this.buildShortTimeoutClient();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
-                String sResp = response.body().string();
-                MLog.d("Got response " + sResp);
-                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+        MusapMessage respMsg = this.sendRequest(msg, this.buildShortTimeoutClient());
 
-                if (respMsg == null || respMsg.payload == null) {
-                    MLog.d("Null payload");
-                    return null;
-                }
-
-                String transId = respMsg.transid;
-                MLog.d("Response payload=" + respMsg.payload);
-                String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
-                MLog.d("Decoded=" + payloadJson);
-
-                SignaturePayload payload = GSON.fromJson(payloadJson, SignaturePayload.class);
-                MLog.d("Parsed payload");
-
-                return new PollResponsePayload(payload, transId);
-            } else {
-                MLog.d("Null response");
-                return null;
-            }
+        if (respMsg == null || respMsg.payload == null) {
+            MLog.d("Null payload");
+            return null;
         }
+
+        String transId = respMsg.transid;
+        MLog.d("Response payload=" + respMsg.payload);
+        String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+        MLog.d("Decoded=" + payloadJson);
+
+        SignaturePayload payload = GSON.fromJson(payloadJson, SignaturePayload.class);
+        MLog.d("Parsed payload");
+
+        return new PollResponsePayload(payload, transId);
     }
 
     /**
@@ -307,34 +225,21 @@ public class MusapLink {
      * @see #poll()
      * @throws IOException
      */
-    public void sendKeygenCallback(MusapKey key, String transId) throws IOException {
+    public void sendKeygenCallback(MusapKey key, String transId) throws IOException, GeneralSecurityException {
         SignatureCallbackPayload payload = new SignatureCallbackPayload(key);
 
         MusapMessage msg = new MusapMessage();
         msg.type = KEY_CALLBACK_MSG_TYPE;
-        msg.payload = payload.toBase64();
         msg.musapId = this.musapid;
         msg.transid = transId;
-        MLog.d("Message=" + msg.toJson());
-        MLog.d("Url=" + this.url);
 
-        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
-        Request request = new Request.Builder()
-                .url(this.url)
-                .post(body)
-                .build();
-        OkHttpClient client = this.buildClient();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
-                String sResp = response.body().string();
-                MLog.d("Got response " + sResp);
-                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+        PayloadHolder encrypted = this.getPayload(payload.toBase64(), true);
+        msg.payload = encrypted.getPayload();
+        msg.iv = encrypted.getIv();
+        MLog.d("Encrypted=" + msg.toJson());
 
-                if (respMsg == null || respMsg.payload == null) {
-                    MLog.d("Null payload");
-                }
-            }
-        }
+        // TODO: Check response.
+        this.sendRequest(msg, this.buildClient());
     }
 
     /**
@@ -356,28 +261,14 @@ public class MusapLink {
         msg.payload = payload.toBase64();
         msg.musapId = this.musapid;
         msg.transid = transId;
-        MLog.d("Message=" + msg.toJson());
-        MLog.d("Url=" + this.url);
 
-        RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
-        Request request = new Request.Builder()
-                .url(this.url)
-                .post(body)
-                .build();
-        OkHttpClient client = this.buildClient();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.body() != null) {
-                String sResp = response.body().string();
-                MLog.d("Got response " + sResp);
-                MusapMessage respMsg = GSON.fromJson(sResp, MusapMessage.class);
+        MusapMessage respMsg = this.sendRequest(msg);
 
-                if (respMsg == null || respMsg.payload == null) {
-                    MLog.d("Null payload");
-                }
-            }
+        if (respMsg == null || respMsg.payload == null) {
+            MLog.d("Null payload");
         }
     }
-  
+
     /**
      * Request external Signature with the "externalsignature" Coupling API call
      * @param payload External Signature request payload
@@ -392,7 +283,6 @@ public class MusapLink {
         msg.payload = payload.toBase64();
         msg.type    = SIGN_MSG_TYPE;
         msg.musapId = getMusapId();
-        MLog.d("Message=" + msg.toJson());
 
         MusapMessage respMsg = sendRequest(msg);
         if (respMsg == null || respMsg.payload == null) {
@@ -417,12 +307,12 @@ public class MusapLink {
         return sendRequest(msg, this.buildClient());
     }
 
-        /**
-         * Send a MUSAP Coupling API message
-         * @param msg Request
-         * @return Response or null if not available
-         * @throws IOException
-         */
+    /**
+     * Send a MUSAP Coupling API message
+     * @param msg Request
+     * @return Response or null if not available
+     * @throws IOException
+     */
     private MusapMessage sendRequest(MusapMessage msg, OkHttpClient client) throws IOException {
         MLog.d("Sending request " + msg.toJson());
         MLog.d("Target URL " + this.url);
@@ -478,7 +368,6 @@ public class MusapLink {
             msg.payload = payload.toBase64();
             msg.type    = SIGN_MSG_TYPE;
             msg.musapId = getMusapId();
-            MLog.d("Message=" + msg.toJson());
 
             MusapMessage respMsg = sendRequest(msg, client);
             if (respMsg == null || respMsg.payload == null) {
@@ -500,9 +389,31 @@ public class MusapLink {
         return null;
     }
 
+    private PayloadHolder getPayload(String payloadBase64, boolean encrypt)
+            throws GeneralSecurityException, IOException {
+        if (encrypt) {
+            // Return encrypted payload and IV
+            return encryption.encrypt(payloadBase64);
+        } else {
+            // Just return the payload and null IV
+            return new PayloadHolder(payloadBase64, null);
+        }
+    }
+
+    public String parsePayload(MusapMessage respMsg, boolean isEncrypted)
+            throws GeneralSecurityException, IOException {
+        MLog.d("Response payload=" + respMsg.payload);
+        if (isEncrypted) {
+            byte[] decoded = Base64.decode(respMsg.payload.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+            return encryption.decrypt(decoded, respMsg.iv);
+        } else {
+            String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
+            MLog.d("Decoded=" + payloadJson);
+            return payloadJson;
+        }
+    }
+
     private OkHttpClient buildClient() {
-        // TODO: App can just use one client.
-        //  Maybe have a short timeout and long timeout clients?
         return new OkHttpClient.Builder()
                 .readTimeout(readTimeOutMs, TimeUnit.MILLISECONDS)
                 .connectTimeout(connectTimeOutMs, TimeUnit.MILLISECONDS)

@@ -25,7 +25,7 @@ import fi.methics.musap.sdk.internal.datatype.MusapSignature;
 import fi.methics.musap.sdk.internal.datatype.SignatureAttribute;
 import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.datatype.SscdInfo;
-import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignaturePayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.ExternalSignaturePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;

@@ -1,11 +1,14 @@
 package fi.methics.musap.sdk.internal.encryption;
 
-public class EncryptedPayload {
+/**
+ * Holds payload and possible IV.
+ */
+public class PayloadHolder {
 
     private final String payload;
     private final String iv;
 
-    public EncryptedPayload(String payload, String iv) {
+    public PayloadHolder(String payload, String iv) {
         this.payload = payload;
         this.iv = iv;
     }

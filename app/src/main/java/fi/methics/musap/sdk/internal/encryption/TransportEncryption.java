@@ -5,8 +5,8 @@ import java.security.GeneralSecurityException;
 
 public interface TransportEncryption {
 
-    EncryptedPayload encrypt(String message) throws IOException, GeneralSecurityException;
-    EncryptedPayload encrypt(String message, String iv) throws IOException, GeneralSecurityException;
+    PayloadHolder encrypt(String message) throws IOException, GeneralSecurityException;
+    PayloadHolder encrypt(String message, String iv) throws IOException, GeneralSecurityException;
 
     String decrypt(byte[] message, String iv) throws IOException, GeneralSecurityException;
 

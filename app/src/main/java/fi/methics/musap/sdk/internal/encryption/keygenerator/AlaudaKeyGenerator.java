@@ -71,7 +71,7 @@ public class AlaudaKeyGenerator implements KeyGenerator {
                 authenticationKey,
                 authnKeyProtection.getKeyProtection());
 
-        return Base64.encodeToString(key, Base64.NO_WRAP | Base64.URL_SAFE);
+        return Base64.encodeToString(key, Base64.NO_WRAP);
     }
 
     /**

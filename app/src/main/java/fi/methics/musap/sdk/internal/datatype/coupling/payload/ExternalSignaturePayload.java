@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype.coupling;
+package fi.methics.musap.sdk.internal.datatype.coupling.payload;
 
 import android.util.Base64;
 
@@ -10,9 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.MusapLinkPayload;
 import fi.methics.musap.sdk.internal.util.MLog;
 
-public class ExternalSignaturePayload {
+public class ExternalSignaturePayload extends MusapLinkPayload {
 
     @SerializedName("clientid")
     public String clientid;
