@@ -272,6 +272,7 @@ public class Rest204Sscd implements MusapSscdInterface<Rest204Settings> {
                 MLog.d("Successfully bound REST 204 SSCD");
                 MusapKey.Builder builder = new MusapKey.Builder();
                 builder.setCertificate(signature.getSignerCertificate());
+                builder.setCertificateChain(signature.getCertificateChain());
                 builder.setKeyAlias(req.getKeyAlias());
                 builder.setSscdType(SSCD_TYPE);
                 builder.setSscdId(this.getSscdInfo().getSscdId());
