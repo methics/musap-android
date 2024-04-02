@@ -14,6 +14,7 @@ import fi.methics.musap.sdk.internal.datatype.coupling.payload.MusapLinkPayload;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 public class ExternalSignaturePayload extends MusapLinkPayload {
+    private static final String SIGN_MSG_TYPE = "externalsignature";
 
     @SerializedName("clientid")
     public String clientid;
@@ -68,5 +69,10 @@ public class ExternalSignaturePayload extends MusapLinkPayload {
                 Base64.NO_WRAP);
         MLog.d("Base64=" + base64);
         return base64;
+    }
+
+    @Override
+    public String getType() {
+        return SIGN_MSG_TYPE;
     }
 }

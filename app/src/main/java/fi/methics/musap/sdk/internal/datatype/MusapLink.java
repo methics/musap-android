@@ -15,12 +15,13 @@ import fi.methics.musap.sdk.internal.datatype.coupling.payload.EnrollDataPayload
 import fi.methics.musap.sdk.internal.datatype.coupling.EnrollDataResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.payload.ExternalSignaturePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.ExternalSignatureResponsePayload;
-import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.LinkAccountPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.LinkAccountResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.PollResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.SignatureCallbackPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.SignaturePayload;
-import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.PollPayload;
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.UpdateDataPayload;
 import fi.methics.musap.sdk.internal.datatype.coupling.UpdateDataResponsePayload;
 import fi.methics.musap.sdk.internal.encryption.AesTransportEncryption;
 import fi.methics.musap.sdk.internal.encryption.PayloadHolder;
@@ -41,13 +42,9 @@ public class MusapLink {
 
     public static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
 
-    private static final String COUPLE_MSG_TYPE       = "linkaccount";
-    private static final String ENROLL_MSG_TYPE       = "enrolldata";
-    private static final String UPDATE_MSG_TYPE       = "updatedata";
-    private static final String POLL_MSG_TYPE         = "getdata";
-    private static final String SIG_CALLBACK_MSG_TYPE = "signaturecallback";
+    private static final String ENROLL_MSG_TYPE = "enrolldata";
+
     private static final String KEY_CALLBACK_MSG_TYPE = "generatekeycallback";
-    private static final String SIGN_MSG_TYPE         = "externalsignature";
 
     /**
      * How many times to poll for a signature response.
@@ -121,8 +118,8 @@ public class MusapLink {
         EnrollDataPayload payload = new EnrollDataPayload(fcmToken, secret);
 
         MusapMessage msg = new MusapMessage();
-        msg.payload = payload.toBase64();
-        msg.type = ENROLL_MSG_TYPE;
+        msg.setPayload(payload);
+        msg.setType(payload);
 
         MusapMessage respMsg = this.sendRequest(msg, true);
         MLog.d("Response payload=" + respMsg.payload);
@@ -144,8 +141,8 @@ public class MusapLink {
         UpdateDataPayload reqPayload = new UpdateDataPayload(fcmToken);
 
         MusapMessage msg = new MusapMessage();
-        msg.payload = reqPayload.toBase64();
-        msg.type = UPDATE_MSG_TYPE;
+        msg.setPayload(reqPayload);
+        msg.setType(reqPayload);
 
         MusapMessage respMsg = this.sendRequest(msg, true);
 
@@ -164,8 +161,9 @@ public class MusapLink {
         LinkAccountPayload payload = new LinkAccountPayload(couplingCode, uuid);
 
         MusapMessage msg = new MusapMessage();
-        msg.payload = payload.toBase64();
-        msg.type = COUPLE_MSG_TYPE;
+        msg.setPayload(payload);
+        msg.setType(payload);
+
         msg.musapId = this.musapid;
 
         MusapMessage respMsg = this.sendRequest(msg, true);
@@ -194,8 +192,11 @@ public class MusapLink {
     public PollResponsePayload poll()
             throws IOException, MusapException, GeneralSecurityException {
         MusapMessage msg = new MusapMessage();
-        msg.type = POLL_MSG_TYPE;
+        PollPayload reqPayload = new PollPayload();
+
         msg.musapId = this.musapid;
+        msg.setPayload(reqPayload);
+        msg.setType(reqPayload);
 
         MusapMessage respMsg = this.sendRequest(msg, this.buildShortTimeoutClient(), true);
 
@@ -223,13 +224,16 @@ public class MusapLink {
      */
     public void sendKeygenCallback(MusapKey key, String transId)
             throws IOException, GeneralSecurityException, MusapException {
+
+        // keygen and signature callbacks are similar atm
         SignatureCallbackPayload payload = new SignatureCallbackPayload(key);
 
         MusapMessage msg = new MusapMessage();
-        msg.type = KEY_CALLBACK_MSG_TYPE;
         msg.musapId = this.musapid;
         msg.transid = transId;
-        msg.payload = payload.toBase64();
+        msg.setPayload(payload);
+        // Override type on purpose. Signature callback has a different type
+        msg.type = KEY_CALLBACK_MSG_TYPE;
 
         // TODO: Check response.
         this.sendRequest(msg, this.buildClient(), true);
@@ -251,8 +255,8 @@ public class MusapLink {
         payload.attestationResult = signature.getKeyAttestationResult();
 
         MusapMessage msg = new MusapMessage();
-        msg.type = SIG_CALLBACK_MSG_TYPE;
-        msg.payload = payload.toBase64();
+        msg.setType(payload);
+        msg.setPayload(payload);
         msg.musapId = this.musapid;
         msg.transid = transId;
 
@@ -275,8 +279,8 @@ public class MusapLink {
         MLog.d("MUSAP Link sign");
 
         MusapMessage msg = new MusapMessage();
-        msg.payload = payload.toBase64();
-        msg.type    = SIGN_MSG_TYPE;
+        msg.setPayload(payload);
+        msg.setType(payload);
         msg.musapId = getMusapId();
 
         MusapMessage respMsg = sendRequest(msg, true);
@@ -317,7 +321,7 @@ public class MusapLink {
             PayloadHolder holder = this.getPayload(msg.payload, shouldEncrypt);
             msg.payload = holder.getPayload();
             msg.iv = holder.getIv();
-            msg.mac  = mac.generate(msg.payload, msg.iv, msg.transid, msg.type);
+            msg.mac = mac.generate(msg.payload, msg.iv, msg.transid, msg.type);
         }
 
         RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
@@ -339,8 +343,8 @@ public class MusapLink {
                 // TODO: For now, only warn about mac violations
                 try {
                     if (shouldEncrypt && !isMacValid(respMsg)) {
-                        MLog.d("Invalid MAC");
-                        throw new MusapException("Invalid message");
+                        MLog.e("Invalid mac");
+//                        throw new MusapException("Invalid message");
                     }
                } catch (Exception e) {
                     MLog.e("Invalid mac", e);
@@ -385,8 +389,8 @@ public class MusapLink {
             payload.transid = transid;
 
             MusapMessage msg = new MusapMessage();
-            msg.payload = payload.toBase64();
-            msg.type    = SIGN_MSG_TYPE;
+            msg.setPayload(payload);
+            msg.setType(payload);
             msg.musapId = getMusapId();
 
             MusapMessage respMsg = sendRequest(msg, client, true);

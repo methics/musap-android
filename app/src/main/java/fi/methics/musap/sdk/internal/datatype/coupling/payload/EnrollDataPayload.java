@@ -13,6 +13,8 @@ import fi.methics.musap.sdk.internal.util.MLog;
 
 public class EnrollDataPayload extends MusapLinkPayload {
 
+    private static final String ENROLL_MSG_TYPE = "enrolldata";
+
     @SerializedName("fcmtoken")
     private final String fcmToken;
 
@@ -36,14 +38,20 @@ public class EnrollDataPayload extends MusapLinkPayload {
         this.tokenData = Base64.encodeToString(json.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
     }
 
+    @Override
     public String toBase64() {
-        String payloadJson = new GsonBuilder().disableHtmlEscaping().create().toJson(this);
+        String payloadJson = GSON.toJson(this);
         MLog.d("Payload=" + payloadJson);
         String base64 =  Base64.encodeToString(
                 payloadJson.getBytes(StandardCharsets.UTF_8),
                 Base64.NO_WRAP);
         MLog.d("Base64=" + base64);
         return base64;
+    }
+
+    @Override
+    public String getType() {
+        return ENROLL_MSG_TYPE;
     }
 
 }
