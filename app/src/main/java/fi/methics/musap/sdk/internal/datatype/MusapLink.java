@@ -353,7 +353,7 @@ public class MusapLink {
                 } catch (Exception e) {
                     MLog.e("Invalid mac", e);
                 }
-                respMsg.payload = this.parsePayload(respMsg, true);
+                respMsg.payload = this.parsePayload(respMsg, this.shouldEncrypt());
 
                 return respMsg;
             } else {
