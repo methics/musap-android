@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import java.security.SecureRandom;
+import java.time.Instant;
 
 public abstract class MusapLinkPayload {
 
@@ -13,15 +14,22 @@ public abstract class MusapLinkPayload {
     @SerializedName("nonce")
     public String nonce;
 
+    @SerializedName("timestamp")
+    public String timestamp;
+
     public abstract String toBase64();
 
     public abstract String getType();
 
     protected MusapLinkPayload() {
         this.nonce = this.generateNonce();
+        this.timestamp = this.generateTimestamp();
     }
 
     private String generateNonce() {
         return Integer.toString(new SecureRandom().nextInt());
+    }
+    private String generateTimestamp() {
+        return Instant.now().toString();
     }
 }

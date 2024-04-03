@@ -72,7 +72,7 @@ public class SignatureCallbackPayload extends MusapLinkPayload {
      */
     @Override
     public String toBase64() {
-        String payloadJson = new Gson().toJson(this);
+        String payloadJson = GSON.toJson(this);
         MLog.d("Payload=" + payloadJson);
         String base64 =  Base64.encodeToString(
                 payloadJson.getBytes(StandardCharsets.UTF_8),
