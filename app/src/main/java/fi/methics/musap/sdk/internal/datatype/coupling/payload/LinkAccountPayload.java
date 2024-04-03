@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype.coupling;
+package fi.methics.musap.sdk.internal.datatype.coupling.payload;
 
 import android.util.Base64;
 
@@ -9,7 +9,8 @@ import java.nio.charset.StandardCharsets;
 
 import fi.methics.musap.sdk.internal.util.MLog;
 
-public class LinkAccountPayload {
+public class LinkAccountPayload extends MusapLinkPayload {
+    private static final String COUPLE_MSG_TYPE = "linkaccount";
 
     @SerializedName("couplingcode")
     public final String couplingCode;
@@ -26,12 +27,17 @@ public class LinkAccountPayload {
      * @return
      */
     public String toBase64() {
-        String payloadJson = new Gson().toJson(this);
+        String payloadJson = GSON.toJson(this);
         MLog.d("Payload=" + payloadJson);
         String base64 =  Base64.encodeToString(
                 payloadJson.getBytes(StandardCharsets.UTF_8),
                 Base64.NO_WRAP);
         MLog.d("Base64=" + base64);
         return base64;
+    }
+
+    @Override
+    public String getType() {
+        return COUPLE_MSG_TYPE;
     }
 }

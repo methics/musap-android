@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.datatype.coupling;
+package fi.methics.musap.sdk.internal.datatype.coupling.payload;
 
 import android.util.Base64;
 
@@ -10,9 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fi.methics.musap.sdk.internal.datatype.coupling.payload.MusapLinkPayload;
 import fi.methics.musap.sdk.internal.util.MLog;
 
-public class ExternalSignaturePayload {
+public class ExternalSignaturePayload extends MusapLinkPayload {
+    private static final String SIGN_MSG_TYPE = "externalsignature";
 
     @SerializedName("clientid")
     public String clientid;
@@ -67,5 +69,10 @@ public class ExternalSignaturePayload {
                 Base64.NO_WRAP);
         MLog.d("Base64=" + base64);
         return base64;
+    }
+
+    @Override
+    public String getType() {
+        return SIGN_MSG_TYPE;
     }
 }
