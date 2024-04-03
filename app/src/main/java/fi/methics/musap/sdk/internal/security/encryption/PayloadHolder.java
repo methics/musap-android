@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.encryption;
+package fi.methics.musap.sdk.internal.security.encryption;
 
 /**
  * Holds payload and possible IV.

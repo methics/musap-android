@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.encryption.mac;
+package fi.methics.musap.sdk.internal.security.mac;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;

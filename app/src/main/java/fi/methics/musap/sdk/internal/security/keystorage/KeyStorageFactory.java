@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.encryption.keystorage;
+package fi.methics.musap.sdk.internal.security.keystorage;
 
 public class KeyStorageFactory {
 

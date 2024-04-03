@@ -2,7 +2,7 @@
  * (c) Copyright 2003-2020 Methics Oy. All rights reserved.
  */
 
-package fi.methics.musap.sdk.internal.encryption;
+package fi.methics.musap.sdk.internal.security.encryption;
 
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
@@ -16,8 +16,8 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import fi.methics.musap.sdk.internal.encryption.keygenerator.MusapKeyGenerator;
-import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
+import fi.methics.musap.sdk.internal.security.keygenerator.MusapKeyGenerator;
+import fi.methics.musap.sdk.internal.security.keystorage.KeyStorage;
 import fi.methics.musap.sdk.internal.util.MLog;
 
 

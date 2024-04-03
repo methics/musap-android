@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.encryption.keygenerator;
+package fi.methics.musap.sdk.internal.security.keygenerator;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;

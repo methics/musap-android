@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.encryption.keystorage;
+package fi.methics.musap.sdk.internal.security.keystorage;
 
 /*
  * (c) Copyright 2003-2020 Methics Oy. All rights reserved.

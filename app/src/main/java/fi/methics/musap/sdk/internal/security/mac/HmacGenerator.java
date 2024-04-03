@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.encryption.mac;/*
+package fi.methics.musap.sdk.internal.security.mac;/*
  * (c) Copyright 2003-2020 Methics Oy. All rights reserved.
  */
 
@@ -13,8 +13,8 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 
-import fi.methics.musap.sdk.internal.encryption.keygenerator.MusapKeyGenerator;
-import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
+import fi.methics.musap.sdk.internal.security.keygenerator.MusapKeyGenerator;
+import fi.methics.musap.sdk.internal.security.keystorage.KeyStorage;
 import fi.methics.musap.sdk.internal.util.HexUtil;
 import fi.methics.musap.sdk.internal.util.MLog;
 

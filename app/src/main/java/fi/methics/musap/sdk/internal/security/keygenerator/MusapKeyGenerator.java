@@ -1,4 +1,4 @@
-package fi.methics.musap.sdk.internal.encryption.keygenerator;
+package fi.methics.musap.sdk.internal.security.keygenerator;
 
 /*
  * (c) Copyright 2003-2020 Methics Oy. All rights reserved.
@@ -19,10 +19,8 @@ import java.security.SecureRandom;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
-import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorageFactory;
-import fi.methics.musap.sdk.internal.util.HexUtil;
-import fi.methics.musap.sdk.internal.util.MLog;
+import fi.methics.musap.sdk.internal.security.keystorage.KeyStorage;
+import fi.methics.musap.sdk.internal.security.keystorage.KeyStorageFactory;
 
 
 /**
