@@ -18,6 +18,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import fi.methics.musap.sdk.internal.encryption.keygenerator.MusapKeyGenerator;
 import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
+import fi.methics.musap.sdk.internal.util.MLog;
 
 
 public class AesTransportEncryption implements TransportEncryption {
@@ -50,6 +51,8 @@ public class AesTransportEncryption implements TransportEncryption {
         if (message == null) {
             throw new IllegalArgumentException("Missing data for encryption");
         }
+
+        MLog.d("Encrypting " + message);
 
         Cipher cipher = this.initCipher(Cipher.ENCRYPT_MODE, iv);
         byte[] encrypted = cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));

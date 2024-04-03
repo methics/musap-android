@@ -321,7 +321,7 @@ public class MusapLink {
             PayloadHolder holder = this.getPayload(msg.payload, shouldEncrypt);
             msg.payload = holder.getPayload();
             msg.iv = holder.getIv();
-            msg.mac = mac.generate(msg.payload, msg.iv, msg.transid, msg.type);
+            msg.mac = mac.generate(msg.payload, msg.iv, msg.getIdentifier(), msg.type);
         }
 
         RequestBody body = RequestBody.create(msg.toJson(), JSON_MEDIA_TYPE);
@@ -361,7 +361,7 @@ public class MusapLink {
 
     private boolean isMacValid(MusapMessage msg) throws GeneralSecurityException, IOException {
         MLog.d("Validating MAC");
-        return mac.validate(msg.payload, msg.iv, msg.transid, msg.type, msg.mac);
+        return mac.validate(msg.payload, msg.iv, msg.getIdentifier(), msg.type, msg.mac);
     }
 
     /**

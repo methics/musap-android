@@ -4,6 +4,7 @@ package fi.methics.musap.sdk.internal.encryption.mac;/*
 
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -19,7 +20,7 @@ import fi.methics.musap.sdk.internal.util.MLog;
 
 
 /**
- * Creates a HMAC for the given message.
+ * Creates a HMAC for the given message. MUSAP and MUSAP Link use HMAC to authenticate messages.
  * The HMAC output is in hexadecimal.
  */
 public class HmacGenerator implements MacGenerator {
@@ -92,6 +93,8 @@ public class HmacGenerator implements MacGenerator {
         MLog.d(TAG, "Message=" + message +  ", iv=" + iv + ", transId=" + transId + ", type=" + type);
 
         String input = transId + type + iv + message;
+        MLog.d(TAG, "Input=" + input);
+
         SecretKey macKey  = this.keyStorage.loadKey(MusapKeyGenerator.MAC_KEY_ALIAS);
 
         if (macKey == null) {
@@ -99,6 +102,6 @@ public class HmacGenerator implements MacGenerator {
         }
 
         MLog.d(TAG, "Alg=" + macKey.getAlgorithm() + ", Format=" + macKey.getFormat());
-        return hmac(macKey, input.getBytes());
+        return hmac(macKey, input.getBytes(StandardCharsets.UTF_8));
     }
 }

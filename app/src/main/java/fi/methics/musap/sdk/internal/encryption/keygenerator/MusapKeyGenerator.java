@@ -21,10 +21,12 @@ import javax.crypto.spec.SecretKeySpec;
 
 import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorage;
 import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorageFactory;
+import fi.methics.musap.sdk.internal.util.HexUtil;
+import fi.methics.musap.sdk.internal.util.MLog;
 
 
 /**
- * Generates transport security and signing keys and store them to the keystore.
+ * Generates transport security and signing keys and stores them to the phone keystore.
  */
 public class MusapKeyGenerator implements KeyGenerator {
 
@@ -60,6 +62,8 @@ public class MusapKeyGenerator implements KeyGenerator {
         hkdf.generateBytes(output, 0, output.length);
         System.arraycopy(output, 0, macKey, 0, macKey.length);
         System.arraycopy(output, macKey.length, encKey, 0, encKey.length);
+
+        MLog.d("MAC Key=" + HexUtil.hexLine(macKey));
 
         SecretKey encryptionKey = new SecretKeySpec(encKey,"AES");
         keyStorage.storeKey(TRANSPORT_KEY_ALIAS,

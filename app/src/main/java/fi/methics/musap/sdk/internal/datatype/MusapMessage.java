@@ -26,6 +26,7 @@ public class MusapMessage {
     @SerializedName("payload")
     public String payload;
 
+    @SerializedName("transid")
     public String transid;
     public String requestid;
     public String mac;
@@ -41,4 +42,18 @@ public class MusapMessage {
     public void setType(MusapLinkPayload payload) {
         this.type = payload.getType();
     }
+
+    /**
+     * Get this message identifier for MAC calculation.
+     * If this message does not have a trans id, use MUSAP ID instead.
+     * @return
+     */
+    public String getIdentifier() {
+        if (this.transid != null) {
+            return this.transid;
+        } else {
+            return this.musapId;
+        }
+    }
+
 }
