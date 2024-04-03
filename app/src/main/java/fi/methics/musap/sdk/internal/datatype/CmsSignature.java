@@ -6,6 +6,9 @@ import org.bouncycastle.cms.CMSSignedData;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import fi.methics.musap.sdk.api.MusapException;
 
@@ -48,6 +51,21 @@ public class CmsSignature extends MusapSignature {
      */
     public Collection<X509CertificateHolder> getCertificates() throws IOException {
         return signedData.getCertificates().getMatches(null);
+    }
+
+    /**
+     * Get the X509 Certificate chain related to this CMS signature
+     * @return Certificate chain
+     * @throws IOException
+     */
+    public List<MusapCertificate> getCertificateChain() throws IOException {
+        return getCertificates().stream().map(c -> {
+            try {
+                return new MusapCertificate(c);
+            } catch (IOException e) {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     /**
