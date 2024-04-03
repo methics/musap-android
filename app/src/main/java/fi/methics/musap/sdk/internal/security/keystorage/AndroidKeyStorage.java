@@ -1,9 +1,5 @@
 package fi.methics.musap.sdk.internal.security.keystorage;
 
-/*
- * (c) Copyright 2003-2020 Methics Oy. All rights reserved.
- */
-
 import android.security.keystore.KeyProtection;
 
 import java.io.IOException;

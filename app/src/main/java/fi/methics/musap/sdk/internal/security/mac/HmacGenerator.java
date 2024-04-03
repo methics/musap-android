@@ -1,7 +1,4 @@
-package fi.methics.musap.sdk.internal.security.mac;/*
- * (c) Copyright 2003-2020 Methics Oy. All rights reserved.
- */
-
+package fi.methics.musap.sdk.internal.security.mac;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

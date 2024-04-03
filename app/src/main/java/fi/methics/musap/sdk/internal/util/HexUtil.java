@@ -1,6 +1,4 @@
-package fi.methics.musap.sdk.internal.util;/*
- * (c) Copyright 2003-2020 Methics Oy. All rights reserved.
- */
+package fi.methics.musap.sdk.internal.util;
 
 
 import java.io.ByteArrayOutputStream;
