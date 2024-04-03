@@ -63,8 +63,6 @@ public class MusapKeyGenerator implements KeyGenerator {
         System.arraycopy(output, 0, macKey, 0, macKey.length);
         System.arraycopy(output, macKey.length, encKey, 0, encKey.length);
 
-        MLog.d("MAC Key=" + HexUtil.hexLine(macKey));
-
         SecretKey encryptionKey = new SecretKeySpec(encKey,"AES");
         keyStorage.storeKey(TRANSPORT_KEY_ALIAS,
                 encryptionKey,

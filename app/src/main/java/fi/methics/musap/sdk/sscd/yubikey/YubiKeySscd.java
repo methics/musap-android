@@ -3,7 +3,6 @@ package fi.methics.musap.sdk.sscd.yubikey;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -66,6 +65,7 @@ import fi.methics.musap.sdk.internal.datatype.SignatureFormat;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
+import fi.methics.musap.sdk.internal.util.HexUtil;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.KeyGenerationResult;
 import fi.methics.musap.sdk.internal.util.MLog;
@@ -80,22 +80,18 @@ import fi.methics.musapsdk.R;
 //       When user cancels a dialog. signing should fail.
 public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
 
-    private static final byte[] MANAGEMENT_KEY = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8};
-    private static final ManagementKeyType TYPE = ManagementKeyType.TDES;
+    private static final byte[] DEFAULT_MANAGEMENT_KEY = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8};
+    private static final ManagementKeyType DEFAULT_TYPE = ManagementKeyType.TDES;
 
     private static final String SSCD_TYPE        = "Yubikey";
     private static final String ATTRIBUTE_SERIAL = "serial";
     private static final String ATTRIBUTE_ATTEST = "YubikeyAttestationCert";
 
-    private final YubiKeySettings settings = new YubiKeySettings();
+    private final YubiKeySettings settings;
 
     private AlertDialog currentPrompt;
     private CompletableFuture<KeyGenerationResult> keygenFuture;
     private CompletableFuture<SigningResult> signFuture;
-
-    private final ManagementKeyType type;
-
-    private final byte[] managementKey;
 
     private final YubiKitManager yubiKitManager;
 
@@ -103,11 +99,16 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     private SignatureReq sigReq;
 
     private final Context c;
-    private Map<String, byte[]> attestationCertificates = new HashMap<>();
+    private final Map<String, byte[]> attestationCertificates = new HashMap<>();
 
     public YubiKeySscd(Context context) {
-        this.managementKey = MANAGEMENT_KEY;
-        this.type = TYPE;
+        this.settings =  new YubiKeySettings();
+        this.c = context;
+        this.yubiKitManager = new YubiKitManager(this.c);
+    }
+
+    public YubiKeySscd(Context context, YubiKeySettings settings) {
+        this.settings = settings;
         this.c = context;
         this.yubiKitManager = new YubiKitManager(this.c);
     }
@@ -399,7 +400,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
 
     private void keyGenOnDevice(KeyGenReq req, String pin, SmartCardConnection connection) throws Exception {
         PivSession pivSession = new PivSession(connection);
-        pivSession.authenticate(this.type, this.managementKey);
+        pivSession.authenticate(this.resolveManagementKeyType(), this.resolveManagementKey());
 
         PivProvider pivProvider = new PivProvider(pivSession);
         Security.insertProviderAt(pivProvider, 1); // JCA Security providers are indexed from 1
@@ -506,7 +507,7 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
         try {
             PivSession pivSession = new PivSession(connection);
 
-            pivSession.authenticate(this.type, this.managementKey);
+            pivSession.authenticate(this.resolveManagementKeyType(), this.resolveManagementKey());
             Slot slot = Slot.SIGNATURE;
 
             PivProvider pivProvider = new PivProvider(pivSession);
@@ -583,6 +584,22 @@ public class YubiKeySscd implements MusapSscdInterface<YubiKeySettings> {
     public void cancelSignature() {
         if (this.signFuture != null) {
             this.signFuture.complete(new SigningResult(new MusapException("Cancel")));
+        }
+    }
+
+    private byte[] resolveManagementKey() {
+        if (this.settings.getManagementKey() == null) {
+            return DEFAULT_MANAGEMENT_KEY;
+        } else {
+            return HexUtil.parseHex(this.settings.getManagementKey());
+        }
+    }
+
+    private ManagementKeyType resolveManagementKeyType() {
+        if (this.settings.getManagementKeyType() == null) {
+            return DEFAULT_TYPE;
+        } else {
+            return ManagementKeyType.valueOf(this.settings.getManagementKeyType());
         }
     }
 

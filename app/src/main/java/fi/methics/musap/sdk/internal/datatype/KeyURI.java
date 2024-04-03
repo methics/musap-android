@@ -292,7 +292,6 @@ public class KeyURI {
      * @return
      */
     private boolean areParamsPartialMatch(String thisParam, String searchParam) {
-        // TODO: How are nulls matched? Can these even be null?
         String[] thisArr = thisParam.split(",");
         String[] searchArr = searchParam.split(",");
 

@@ -17,7 +17,6 @@ import com.yubico.yubikit.openpgp.KeyRef;
 import com.yubico.yubikit.openpgp.OpenPgpCurve;
 import com.yubico.yubikit.openpgp.OpenPgpSession;
 import com.yubico.yubikit.piv.ManagementKeyType;
-import com.yubico.yubikit.piv.Slot;
 
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -57,18 +56,18 @@ import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.sign.SignatureReq;
+import fi.methics.musap.sdk.internal.util.HexUtil;
 import fi.methics.musap.sdk.internal.util.IdGenerator;
 import fi.methics.musap.sdk.internal.util.KeyGenerationResult;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.SigningResult;
 import fi.methics.musapsdk.R;
 
+/**
+ *
+ */
 public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
-    private static final byte[] MANAGEMENT_KEY = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8};
-    private static final ManagementKeyType TYPE = ManagementKeyType.TDES;
 
-
-    public static final char[] DEFAULT_USER_PIN = "123456".toCharArray();
     public static final char[] DEFAULT_ADMIN_PIN = "12345678".toCharArray();
 
     private static final String SSCD_TYPE        = "YubikeyEddsa";
@@ -80,10 +79,6 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
     private AlertDialog currentPrompt;
     private CompletableFuture<KeyGenerationResult> keygenFuture;
     private CompletableFuture<SigningResult> signFuture;
-
-    private final ManagementKeyType type;
-
-    private final byte[] managementKey;
 
     private final YubiKitManager yubiKitManager;
 
@@ -97,10 +92,15 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
     private Map<String, byte[]> attestationCertificates = new HashMap<>();
 
     public YubiKeyOpenPgpSscd(Context context) {
-        this.managementKey = MANAGEMENT_KEY;
-        this.type = TYPE;
         this.c = context;
         this.yubiKitManager = new YubiKitManager(this.c);
+        this.settings = new YubiKeySettings();
+    }
+
+    public YubiKeyOpenPgpSscd(Context context, YubiKeySettings settings) {
+        this.c = context;
+        this.yubiKitManager = new YubiKitManager(this.c);
+        this.settings = settings;
     }
 
     @Override
@@ -409,7 +409,7 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
         MLog.d("Device supports ECC=" + openpgp.supports(OpenPgpSession.FEATURE_EC_KEYS));
 
-        openpgp.verifyAdminPin(DEFAULT_ADMIN_PIN);
+        openpgp.verifyAdminPin(this.resolveAdminPin());
 
         MLog.d("Trying to generate a key");
 
@@ -565,6 +565,14 @@ public class YubiKeyOpenPgpSscd implements MusapSscdInterface<YubiKeySettings> {
 
     private String serialToString(int serial) {
         return Integer.toString(serial);
+    }
+
+    private char[] resolveAdminPin() {
+        if (this.settings.getAdminPin() == null) {
+            return DEFAULT_ADMIN_PIN;
+        } else {
+            return this.settings.getAdminPin().toCharArray();
+        }
     }
 
 }

@@ -27,6 +27,7 @@ import fi.methics.musap.sdk.internal.encryption.AesTransportEncryption;
 import fi.methics.musap.sdk.internal.encryption.PayloadHolder;
 import fi.methics.musap.sdk.internal.encryption.TransportEncryption;
 import fi.methics.musap.sdk.internal.encryption.keygenerator.MusapKeyGenerator;
+import fi.methics.musap.sdk.internal.encryption.keystorage.AndroidKeyStorage;
 import fi.methics.musap.sdk.internal.encryption.keystorage.KeyStorageFactory;
 import fi.methics.musap.sdk.internal.encryption.mac.HmacGenerator;
 import fi.methics.musap.sdk.internal.encryption.mac.MacGenerator;
@@ -121,7 +122,7 @@ public class MusapLink {
         msg.setPayload(payload);
         msg.setType(payload);
 
-        MusapMessage respMsg = this.sendRequest(msg, true);
+        MusapMessage respMsg = this.sendRequest(msg);
         MLog.d("Response payload=" + respMsg.payload);
 
         EnrollDataResponsePayload respPayload = GSON.fromJson(respMsg.payload, EnrollDataResponsePayload.class);
@@ -144,7 +145,7 @@ public class MusapLink {
         msg.setPayload(reqPayload);
         msg.setType(reqPayload);
 
-        MusapMessage respMsg = this.sendRequest(msg, true);
+        MusapMessage respMsg = this.sendRequest(msg);
 
         UpdateDataResponsePayload respPayload = GSON.fromJson(respMsg.payload, UpdateDataResponsePayload.class);
         return respPayload.isSuccess();
@@ -166,7 +167,7 @@ public class MusapLink {
 
         msg.musapId = this.musapid;
 
-        MusapMessage respMsg = this.sendRequest(msg, true);
+        MusapMessage respMsg = this.sendRequest(msg);
 
         if (respMsg == null || respMsg.payload == null) {
             MLog.d("Null payload");
@@ -198,7 +199,7 @@ public class MusapLink {
         msg.setPayload(reqPayload);
         msg.setType(reqPayload);
 
-        MusapMessage respMsg = this.sendRequest(msg, this.buildShortTimeoutClient(), true);
+        MusapMessage respMsg = this.sendRequest(msg, this.buildShortTimeoutClient());
 
         if (respMsg == null || respMsg.payload == null) {
             MLog.d("Null payload");
@@ -236,7 +237,7 @@ public class MusapLink {
         msg.type = KEY_CALLBACK_MSG_TYPE;
 
         // TODO: Check response.
-        this.sendRequest(msg, this.buildClient(), true);
+        this.sendRequest(msg, this.buildClient());
     }
 
     /**
@@ -260,7 +261,7 @@ public class MusapLink {
         msg.musapId = this.musapid;
         msg.transid = transId;
 
-        MusapMessage respMsg = this.sendRequest(msg, true);
+        MusapMessage respMsg = this.sendRequest(msg);
 
         if (respMsg == null || respMsg.payload == null) {
             MLog.d("Null payload");
@@ -283,7 +284,7 @@ public class MusapLink {
         msg.setType(payload);
         msg.musapId = getMusapId();
 
-        MusapMessage respMsg = sendRequest(msg, true);
+        MusapMessage respMsg = sendRequest(msg);
         if (respMsg == null || respMsg.payload == null) {
             MLog.d("Null payload");
             return null;
@@ -299,21 +300,24 @@ public class MusapLink {
         return resp;
     }
 
-    private MusapMessage sendRequest(MusapMessage msg, boolean shouldEncrypt)
+    private MusapMessage sendRequest(MusapMessage msg)
             throws IOException, MusapException, GeneralSecurityException {
-        return sendRequest(msg, this.buildClient(), shouldEncrypt);
+        return sendRequest(msg, this.buildClient());
     }
 
     /**
      * Send a MUSAP Coupling API message
+     *
      * @param msg Request
      * @return Response or null if not available
      * @throws IOException
      */
-    private MusapMessage sendRequest(MusapMessage msg, OkHttpClient client, boolean shouldEncrypt)
+    private MusapMessage sendRequest(MusapMessage msg, OkHttpClient client)
             throws IOException, GeneralSecurityException, MusapException {
         MLog.d("Sending request " + msg.toJson());
         MLog.d("Target URL " + this.url);
+
+        boolean shouldEncrypt = this.shouldEncrypt();
 
         // If the request should be encrypted, rewrite payload with the encrypted variant
         // Enroll request is not encrypted, but response is.
@@ -346,10 +350,10 @@ public class MusapLink {
                         MLog.e("Invalid mac");
 //                        throw new MusapException("Invalid message");
                     }
-               } catch (Exception e) {
+                } catch (Exception e) {
                     MLog.e("Invalid mac", e);
                 }
-                respMsg.payload = this.parsePayload(respMsg, shouldEncrypt);
+                respMsg.payload = this.parsePayload(respMsg, true);
 
                 return respMsg;
             } else {
@@ -393,7 +397,7 @@ public class MusapLink {
             msg.setType(payload);
             msg.musapId = getMusapId();
 
-            MusapMessage respMsg = sendRequest(msg, client, true);
+            MusapMessage respMsg = sendRequest(msg, client);
             if (respMsg == null || respMsg.payload == null) {
                 MLog.d("Null payload");
                 return null;
@@ -432,6 +436,24 @@ public class MusapLink {
             String payloadJson = new String(Base64.decode(respMsg.payload, Base64.NO_WRAP));
             MLog.d("Decoded=" + payloadJson);
             return payloadJson;
+        }
+    }
+
+    /**
+     * Check if we should encrypt messages to Musap link.
+     * To allow backwards compatibility, old accounts that do not have
+     * generated keys do not try to encrypt. New accounts will use it.
+     * @return
+     */
+    private boolean shouldEncrypt() {
+        try {
+            // If we have generated a key, use it. Authn and sign key
+            // are generated at the same time, so if one exists, the another exists too.
+            return new AndroidKeyStorage().keyExists(MusapKeyGenerator.MAC_KEY_ALIAS);
+        } catch (Exception e) {
+            MLog.e("Failed to find key",e);
+            // If there is a problem with key existance, don't encrypt
+            return false;
         }
     }
 
