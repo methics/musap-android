@@ -18,6 +18,7 @@ import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 import fi.methics.musap.sdk.internal.keygeneration.UpdateKeyReq;
 import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musap.sdk.internal.util.MusapSscd;
+import fi.methics.musap.sdk.internal.util.gson.MusapGson;
 
 /**
  * MUSAP Metadata Storage class
@@ -104,7 +105,7 @@ public class AndroidMetadataStorage {
                 MLog.e("Missing key metadata JSON for key name " + keyId);
             } else {
                 MLog.d("Found key " + keyJson);
-                MusapKey key = new Gson().fromJson(keyJson, MusapKey.class);
+                MusapKey key = MusapGson.GSON.fromJson(keyJson, MusapKey.class);
                 keyList.add(key);
             }
         }
@@ -337,11 +338,11 @@ public class AndroidMetadataStorage {
 
 
     private String toJson(MusapKey key) {
-        return new Gson().toJson(key);
+        return MusapGson.GSON.toJson(key);
     }
 
     private MusapKey parseKeyJson(String keyJson) {
-        return new Gson().fromJson(keyJson, MusapKey.class);
+        return MusapGson.GSON.fromJson(keyJson, MusapKey.class);
     }
 
 }

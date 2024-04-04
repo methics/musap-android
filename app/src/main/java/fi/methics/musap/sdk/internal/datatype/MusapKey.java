@@ -1,6 +1,5 @@
 package fi.methics.musap.sdk.internal.datatype;
 
-import java.sql.Array;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
