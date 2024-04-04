@@ -17,11 +17,14 @@ import fi.methics.musap.sdk.internal.security.keystorage.KeyStorage;
  */
 public class MockKeyStorage implements KeyStorage {
 
-    Map<String, SecretKey> keys = new HashMap<>();
+    private Map<String, SecretKey> keys = new HashMap<>();
+
+    private Map<String, KeyProtection> protections= new HashMap<>();
 
     @Override
     public void storeKey(String keyName, SecretKey key, KeyProtection protection) throws GeneralSecurityException, IOException {
         this.keys.put(keyName, key);
+        this.protections.put(keyName, protection);
     }
 
     @Override
@@ -33,4 +36,8 @@ public class MockKeyStorage implements KeyStorage {
     public boolean keyExists(String keyName) throws GeneralSecurityException, IOException {
         return this.keys.containsKey(keyName);
     }
+    public boolean hasProtection(String keyName) {
+        return this.protections.containsKey(keyName);
+    }
+
 }
