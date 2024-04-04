@@ -11,13 +11,11 @@ import fi.methics.musap.sdk.internal.datatype.SscdInfo;
 
 public class KeyDiscoveryAPI {
 
-    private Context context;
     private static List<MusapSscdInterface> enabledSscds = new ArrayList<>();
-    private MetadataStorage storage;
+    private AndroidMetadataStorage storage;
 
-    public KeyDiscoveryAPI(Context context) {
-        this.context = context;
-        this.storage = new MetadataStorage(this.context);
+    public KeyDiscoveryAPI(AndroidMetadataStorage storage) {
+        this.storage = storage;
     }
 
     /**
@@ -76,7 +74,7 @@ public class KeyDiscoveryAPI {
      * @return List of available keys
      */
     public List<MusapKey> listKeys() {
-        return new MetadataStorage(context).listKeys();
+        return this.storage.listKeys();
     }
 
     /**
@@ -85,7 +83,7 @@ public class KeyDiscoveryAPI {
      * @return
      */
     public boolean removeKey(MusapKey key) {
-        return new MetadataStorage(context).removeKey(key);
+        return this.storage.removeKey(key);
     }
 
 }

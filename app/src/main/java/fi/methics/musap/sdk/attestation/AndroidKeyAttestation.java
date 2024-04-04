@@ -4,6 +4,10 @@ import fi.methics.musap.sdk.internal.datatype.MusapKey;
 
 public class AndroidKeyAttestation extends KeyAttestation {
 
+    public AndroidKeyAttestation() {
+        super("AKS");
+    }
+
     @Override
     public KeyAttestationResult getAttestationData(MusapKey key) {
         KeyAttestationResult.Builder builder = new KeyAttestationResult.Builder(getAttestationType());
