@@ -126,7 +126,7 @@ public class AndroidMetadataStorage {
             if (keyJson == null) {
                 MLog.e("Missing key metadata JSON for key name " + keyId);
             } else {
-                MusapKey key = new Gson().fromJson(keyJson, MusapKey.class);
+                MusapKey key = MusapGson.GSON.fromJson(keyJson, MusapKey.class);
                 if (req.matches(key)) {
                     MLog.d("Request matches key " + keyId);
                     keyList.add(key);
@@ -153,7 +153,7 @@ public class AndroidMetadataStorage {
         }
         newKeyIds.remove(key.getKeyId());
 
-        String keyJson = new Gson().toJson(key);
+        String keyJson = MusapGson.GSON.toJson(key);
         MLog.d("KeyJson=" + keyJson);
 
         this.getSharedPref().putStringSet(KEY_ID_SET, newKeyIds);

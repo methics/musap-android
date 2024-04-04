@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fi.methics.musap.sdk.internal.discovery.Storage;
+import fi.methics.musap.sdk.internal.util.MLog;
 
 /**
  * Mock implementation of the low level storage interface.
@@ -39,6 +40,9 @@ public class MockStorage implements Storage {
 
     @Override
     public Storage removeString(String key) {
+        MLog.d("Removing key " + key);
+        MLog.d("Map=" + this.storage);
+
         this.storage.remove(key);
         this.setStorage.remove(key);
         return this;

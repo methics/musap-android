@@ -1,5 +1,6 @@
 package fi.methics.musap.sdk.internal.discovery;
 
+import fi.methics.musap.sdk.internal.datatype.KeyAlgorithm;
 import fi.methics.musap.sdk.internal.datatype.KeyURI;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
 import fi.methics.musap.sdk.internal.datatype.SscdInfo;
@@ -13,7 +14,7 @@ public class KeySearchReq {
     private String sscdType;
     private String country;
     private String provider;
-    private String keyAlgorithm;
+    private KeyAlgorithm keyAlgorithm;
     private String keyUri;
 
     public KeySearchReq(Builder builder) {
@@ -36,7 +37,7 @@ public class KeySearchReq {
         return provider;
     }
 
-    public String getKeyAlgorithm() {
+    public KeyAlgorithm getKeyAlgorithm() {
         return keyAlgorithm;
     }
 
@@ -64,7 +65,7 @@ public class KeySearchReq {
         private String sscdType;
         private String country;
         private String provider;
-        private String keyAlgorithm;
+        private KeyAlgorithm keyAlgorithm;
         private String keyUri;
 
         public Builder setSscdType(String sscdType) {
@@ -82,7 +83,7 @@ public class KeySearchReq {
             return this;
         }
 
-        public Builder setKeyAlgorithm(String keyAlgorithm) {
+        public Builder setKeyAlgorithm(KeyAlgorithm keyAlgorithm) {
             this.keyAlgorithm = keyAlgorithm;
             return this;
         }
