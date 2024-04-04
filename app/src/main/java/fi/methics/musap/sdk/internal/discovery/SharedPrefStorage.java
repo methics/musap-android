@@ -7,12 +7,21 @@ import java.util.Set;
 
 public class SharedPrefStorage implements Storage {
 
-    private static final String PREF_NAME = "musap";
+    private static final String DEFAULT_PREF_NAME = "musap";
 
     private final Context context;
+    private final String prefName;
 
     public SharedPrefStorage(Context c) {
         this.context = c;
+        // Use default
+        this.prefName = DEFAULT_PREF_NAME;
+    }
+
+    public SharedPrefStorage(Context c, String prefName) {
+        this.context = c;
+        // Use default
+        this.prefName = prefName;
     }
 
     @Override
@@ -51,6 +60,6 @@ public class SharedPrefStorage implements Storage {
     }
 
     private SharedPreferences getSharedPref() {
-        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        return context.getSharedPreferences(this.prefName, Context.MODE_PRIVATE);
     }
 }
