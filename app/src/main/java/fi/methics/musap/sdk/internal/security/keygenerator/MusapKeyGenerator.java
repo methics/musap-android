@@ -32,10 +32,10 @@ public class MusapKeyGenerator implements KeyGenerator {
     public static final String TRANSPORT_KEY_ALIAS = "transportkey";
     public static final String MAC_KEY_ALIAS = "mackey";
 
-    private static final KeyStorage keyStorage = KeyStorageFactory.getAndroidKeyStorage();
+    private static KeyStorage keyStorage = KeyStorageFactory.getAndroidKeyStorage();
 
-    private static final MusapKeyProtection encKeyProtection = new EncryptionKeyProtection();
-    private static final MusapKeyProtection authnKeyProtection = new AuthenticationKeyProtection();
+    private static MusapKeyProtection encKeyProtection = new EncryptionKeyProtection();
+    private static MusapKeyProtection authnKeyProtection = new AuthenticationKeyProtection();
 
     /**
      * Generates a secret, creates authentication and encryption keys using HKDF using it,
@@ -91,5 +91,16 @@ public class MusapKeyGenerator implements KeyGenerator {
         return hkdfStatic();
     }
 
+    public static void setKeyStorage(KeyStorage storage) {
+        keyStorage = storage;
+    }
+
+    public static void setAuthenticationKeyProtection(MusapKeyProtection protection) {
+        authnKeyProtection = protection;
+    }
+
+    public static void setEncryptionKeyProtection(MusapKeyProtection protection) {
+        encKeyProtection = protection;
+    }
 
 }

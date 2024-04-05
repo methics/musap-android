@@ -19,7 +19,7 @@ public class YubiKeyAttestation extends KeyAttestation {
      * @param certificates Map of KeyID to attestation X509Certificate
      */
     public YubiKeyAttestation(Map<String, byte[]> certificates) {
-        super(KeyAttestationType.CERTIFICATE);
+        super(KeyAttestationType.YUBIKEY);
         this.certificates = certificates;
     }
 

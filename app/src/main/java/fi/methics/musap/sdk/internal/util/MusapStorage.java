@@ -12,6 +12,8 @@ import java.util.List;
 
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
+import fi.methics.musap.sdk.internal.discovery.SharedPrefStorage;
+import fi.methics.musap.sdk.internal.discovery.Storage;
 
 /**
  * Stores MUSAP internal data such as App ID.
@@ -23,10 +25,13 @@ public class MusapStorage {
     private static final String RP_PREF       = "relying-parties";
     private static final Gson GSON = new Gson();
 
-    private final Context context;
+    private final Storage storage;
 
     public MusapStorage(Context context) {
-        this.context = context;
+        this.storage = new SharedPrefStorage(context, PREF_NAME);
+    }
+    public MusapStorage(Storage storage) {
+        this.storage = storage;
     }
 
     /**
@@ -116,16 +121,11 @@ public class MusapStorage {
     }
 
     private void storePrefValue(String prefName, String prefValue) {
-        this.getSharedPref().edit().putString(prefName, prefValue).apply();
+        this.storage.putString(prefName, prefValue);
     }
 
     private String getPrefValue(String prefName) {
-        return this.getSharedPref().getString(prefName, null);
+        return this.storage.getString(prefName, null);
     }
-
-    private SharedPreferences getSharedPref() {
-        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-    }
-
 
 }

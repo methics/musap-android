@@ -23,8 +23,6 @@ import fi.methics.musap.sdk.internal.util.MLog;
 
 public class AesTransportEncryption implements TransportEncryption {
 
-    private final String TAG = AesTransportEncryption.class.getSimpleName();
-
     private final KeyStorage keyStorage;
     private final String cipher;
 

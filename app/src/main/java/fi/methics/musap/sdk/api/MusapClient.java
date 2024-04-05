@@ -29,11 +29,12 @@ import fi.methics.musap.sdk.internal.datatype.coupling.PollResponsePayload;
 import fi.methics.musap.sdk.internal.datatype.RelyingParty;
 import fi.methics.musap.sdk.internal.discovery.KeySearchReq;
 import fi.methics.musap.sdk.internal.discovery.MusapImportData;
+import fi.methics.musap.sdk.internal.discovery.SharedPrefStorage;
 import fi.methics.musap.sdk.internal.discovery.SscdSearchReq;
 import fi.methics.musap.sdk.extension.MusapSscdInterface;
 import fi.methics.musap.sdk.internal.discovery.KeyBindReq;
 import fi.methics.musap.sdk.internal.discovery.KeyDiscoveryAPI;
-import fi.methics.musap.sdk.internal.discovery.MetadataStorage;
+import fi.methics.musap.sdk.internal.discovery.AndroidMetadataStorage;
 import fi.methics.musap.sdk.internal.keygeneration.KeyGenReq;
 import fi.methics.musap.sdk.internal.datatype.KeyURI;
 import fi.methics.musap.sdk.internal.datatype.MusapKey;
@@ -55,7 +56,7 @@ public class MusapClient {
 
     private static WeakReference<Context> context;
     private static KeyDiscoveryAPI keyDiscovery;
-    private static MetadataStorage storage;
+    private static AndroidMetadataStorage storage;
     private static ExecutorService executor;
 
     public static void init(Context c) {
@@ -65,8 +66,8 @@ public class MusapClient {
         MLog.d("Insert provider");
 
         context      = new WeakReference<>(c);
-        keyDiscovery = new KeyDiscoveryAPI(c);
-        storage      = new MetadataStorage(c);
+        keyDiscovery = new KeyDiscoveryAPI(new AndroidMetadataStorage(new SharedPrefStorage(c)));
+        storage      = new AndroidMetadataStorage(new SharedPrefStorage(c));
         executor     = new ThreadPoolExecutor(2, 20, 5000, TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(5));
     }
 
@@ -160,7 +161,7 @@ public class MusapClient {
      * @return List of keys
      */
     public static List<MusapKey> listKeys() {
-        MetadataStorage storage = new MetadataStorage(context.get());
+        AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         List<MusapKey> keys = storage.listKeys();
         MLog.d("Found " + keys.size() + " keys");
         return keys;
@@ -172,14 +173,14 @@ public class MusapClient {
      * @return matching keys
      */
     public static List<MusapKey> listKeys(KeySearchReq req) {
-        MetadataStorage storage = new MetadataStorage(context.get());
+        AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         List<MusapKey> keys = storage.listKeys(req);
         MLog.d("Found " + keys.size() + " keys");
         return keys;
     }
 
     public static boolean updateKey(UpdateKeyReq req) {
-        MetadataStorage storage = new MetadataStorage(context.get());
+        AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         return storage.updateKeyMetaData(req);
     }
 
@@ -201,7 +202,7 @@ public class MusapClient {
     public static MusapKey getKeyByKeyID(String keyid) {
         if (keyid == null) return null;
         MLog.d("Searching for key with KeyID " + keyid);
-        MetadataStorage storage = new MetadataStorage(context.get());
+        AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         for (MusapKey key : storage.listKeys()) {
             if (keyid.equals(key.getKeyId())) {
                 MLog.d("Found key " + key.getKeyAlias());
@@ -228,7 +229,7 @@ public class MusapClient {
      */
     public static MusapKey getKeyByUri(KeyURI keyUri) {
         MLog.d("Searching for key with KeyURI " + keyUri);
-        MetadataStorage storage = new MetadataStorage(context.get());
+        AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         for (MusapKey key : storage.listKeys()) {
             if (key.getKeyUri().matches(keyUri)) {
                 MLog.d("Found key " + key.getKeyAlias());
@@ -246,7 +247,7 @@ public class MusapClient {
      */
     public static void importData(String data) throws JsonSyntaxException {
         MusapImportData importData = MusapImportData.fromJson(data);
-        MetadataStorage storage = new MetadataStorage(context.get());
+        AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         storage.addImportData(importData);
     }
 
@@ -255,7 +256,7 @@ public class MusapClient {
      * @return JSON export that can be imported in another MUSAP
      */
     public static String exportData() {
-        MetadataStorage storage = new MetadataStorage(context.get());
+        AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         return storage.getImportData().toJson();
     }
 
