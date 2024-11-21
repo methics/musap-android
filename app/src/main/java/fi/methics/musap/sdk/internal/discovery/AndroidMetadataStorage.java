@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -115,13 +116,13 @@ public class AndroidMetadataStorage {
 
     /**
      * List available MUSAP keys that match the search request.
-     * @param req Key search request. If null, returns all keys
+     * @param req Key search request. If null, returns an empty key list
      * @return List of matching keys
      */
     public List<MusapKey> listKeys(KeySearchReq req) {
         if (req == null) {
             MLog.d("Null key search request. Return all keys");
-            return listKeys();
+            return Collections.emptyList();
         }
 
         Set<String> keyIds = this.getAllKeyIds();

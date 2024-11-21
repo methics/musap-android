@@ -133,7 +133,6 @@ public class MusapClient {
      * @return List of active SSCDs
      */
     public static List<MusapSscd> listActiveSscds() {
-
         List<MusapSscd> enabled = listEnabledSscds();
         List<SscdInfo>  active  = storage.listActiveSscds();
         List<MusapSscd> result  = new ArrayList<>();
@@ -169,10 +168,11 @@ public class MusapClient {
 
     /**
      * List all keys that match the given search paramters
-     * @param req Search request that filters the output
+     * @param req Search request that filters the output. If null, returns an empty list.
      * @return matching keys
      */
     public static List<MusapKey> listKeys(KeySearchReq req) {
+        if (req == null) return Collections.emptyList();
         AndroidMetadataStorage storage = new AndroidMetadataStorage(new SharedPrefStorage(context.get()));
         List<MusapKey> keys = storage.listKeys(req);
         MLog.d("Found " + keys.size() + " keys");
