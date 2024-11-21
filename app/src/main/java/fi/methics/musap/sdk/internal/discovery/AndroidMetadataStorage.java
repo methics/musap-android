@@ -115,10 +115,15 @@ public class AndroidMetadataStorage {
 
     /**
      * List available MUSAP keys that match the search request.
-     * @param req Key search request
+     * @param req Key search request. If null, returns all keys
      * @return List of matching keys
      */
     public List<MusapKey> listKeys(KeySearchReq req) {
+        if (req == null) {
+            MLog.d("Null key search request. Return all keys");
+            return listKeys();
+        }
+
         Set<String> keyIds = this.getAllKeyIds();
         List<MusapKey> keyList = new ArrayList<>();
         for (String keyId: keyIds) {
@@ -145,6 +150,11 @@ public class AndroidMetadataStorage {
      * @return true if key was found and removed
      */
     public boolean removeKey(MusapKey key) {
+        if (key == null) {
+            MLog.d("Null key, won't remove");
+            return false;
+        }
+
         // Update Key Name list without given Key Name
         Set<String> newKeyIds = new HashSet<>(this.getAllKeyIds());
         if (!this.getAllKeyIds().contains(key.getKeyId())) {
@@ -256,10 +266,15 @@ public class AndroidMetadataStorage {
 
     /**
      * Update target key metadata with new values.
-     * @param req
+     * @param req Update key request. If null, no key is updated.
      * @return True if the update is succesful.
      */
     public boolean updateKeyMetaData(UpdateKeyReq req) {
+        if (req == null) {
+            MLog.d("Null update request");
+            return false;
+        }
+
         MusapKey targetKey = req.getKey();
 
         if (targetKey == null) {
@@ -331,6 +346,11 @@ public class AndroidMetadataStorage {
      * @param key
      */
     private void addKeyToMetadataStorage(MusapKey key) {
+        if (key == null) {
+            MLog.d("Null key, won't store metadata");
+            return;
+        }
+
         String keyJson = this.toJson(key);
         MLog.d("Key JSON size="+ keyJson.getBytes(StandardCharsets.UTF_8).length + " B");
         this.getSharedPref().putString(this.makeStoreName(key), keyJson);
