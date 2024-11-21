@@ -35,7 +35,8 @@ import fi.methics.musap.sdk.internal.util.MLog;
 import fi.methics.musapsdk.R;
 
 /**
- * SSCD that uses MUSAP Link to request signatures with the "externalsign" Coupling API call
+ * MSISDN-based SSCD that uses MUSAP Link to request signatures with the "externalsign" Coupling API call
+ * Typical examples of ExternalSSCD is SIM-based Mobile ID.
  */
 public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
@@ -46,6 +47,8 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
     private ExternalSscdSettings settings;
     private MusapLink            musapLink;
 
+    // MUSAP Link uses client ID to decide what external SSCD it should call.
+    // This value must match MUSAP Link config.
     private String clientid;
 
     public ExternalSscd(Context context, ExternalSscdSettings settings) {
@@ -57,20 +60,13 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
     @Override
     public MusapKey bindKey(KeyBindReq req) throws Exception {
-
         MLog.d("Binding ExternalSscd");
 
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
-        CompletableFuture<String> future = new CompletableFuture<>();
 
-        String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
-        if (msisdn == null) {
-            this.showEnterMsisdnDialog(req.getActivity(), future);
-            msisdn = future.get();
-        }
+        String msisdn = this.getMsisdn(req.getAttribute(ATTRIBUTE_MSISDN), req.getActivity());
 
         MLog.d("MSISDN=" + msisdn);
-
         String keyid = IdGenerator.generateKeyId();
 
         request.data = Base64.encodeToString("Bind Key".getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
@@ -108,20 +104,16 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
 
     @Override
     public MusapKey generateKey(KeyGenReq req) throws UnsupportedOperationException {
+        // User has generated key when activating the SSCD. New keys are not needed.
         throw new UnsupportedOperationException();
     }
 
     @Override
     public MusapSignature sign(SignatureReq req) throws Exception {
-
         ExternalSignaturePayload request = new ExternalSignaturePayload(this.clientid);
         CompletableFuture<String> future = new CompletableFuture<>();
 
-        String msisdn = req.getAttribute(ATTRIBUTE_MSISDN);
-        if (msisdn == null) {
-            this.showEnterMsisdnDialog(req.getActivity(), future);
-            msisdn = future.get();
-        }
+        String msisdn = this.getMsisdn(req.getAttribute(ATTRIBUTE_MSISDN), req.getActivity());
 
         MusapKey key = req.getKey();
 
@@ -201,4 +193,19 @@ public class ExternalSscd implements MusapSscdInterface<ExternalSscdSettings> {
         });
     }
 
+    /**
+     * Resolve user MSISDN either from request, or by asking the user.
+     * @param reqMsisdn MSISDN provided in the request. Possibly null.
+     * @return
+     * @throws Exception
+     */
+    private String getMsisdn(String reqMsisdn, Activity activity) throws Exception{
+        if (reqMsisdn != null) {
+            return reqMsisdn;
+        } else {
+            CompletableFuture<String> future = new CompletableFuture<>();
+            this.showEnterMsisdnDialog(activity, future);
+            return future.get();
+        }
+    }
 }

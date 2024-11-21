@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fi.methics.musap.sdk.api.MusapClient;
-import fi.methics.musap.sdk.attestation.KeyAttestation;
-import fi.methics.musap.sdk.attestation.UiccKeyAttestation;
 import fi.methics.musap.sdk.extension.SscdSettings;
 import fi.methics.musap.sdk.internal.datatype.MusapLink;
 
@@ -20,12 +18,14 @@ public class ExternalSscdSettings implements SscdSettings {
     private Map<String, String> settings = new HashMap<>();
     private Duration timeout;
 
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofMinutes(2);
+
     /**
      * Construct External SSCD settings
      * @param clientid Client ID (matching a client in MUSAP Link)
      */
     public ExternalSscdSettings(String clientid) {
-        this.timeout = Duration.ofMinutes(2);
+        this.timeout = DEFAULT_TIMEOUT;
         settings.put(SETTINGS_TIMEOUT, String.valueOf(timeout.toMillis()));
         settings.put(SETTINGS_CLIENT_ID, clientid);
     }
@@ -38,6 +38,10 @@ public class ExternalSscdSettings implements SscdSettings {
     public ExternalSscdSettings setSscdName(String name) {
         this.setSetting(SETTINGS_SSCD_NAME, name);
         return this;
+    }
+
+    public void setTimeOut(Duration timeout) {
+        this.timeout = timeout;
     }
 
     public ExternalSscdSettings setProvider(String provider) {
